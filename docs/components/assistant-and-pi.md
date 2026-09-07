@@ -64,13 +64,22 @@ RPC `prompt.images` field. The model first extracts only visible trade fields;
 when a perp symbol and a position-specific number are available, it can call the
 attachment-gated `kerosene_pnl_card_match` tool.
 
-That tool performs a bounded HyperDash current-position search, scores candidates
-with explicit per-field tolerances, and validates up to ten leading candidates
-against Hyperliquid `clearinghouseState`. It returns at most five public wallet
+That tool performs a bounded HyperDash current-position search in pages of at
+most 30 positions (the provider's per-request limit), scanning at most 500 rows.
+It scores candidates with explicit per-field tolerances and validates up to ten
+leading candidates against Hyperliquid `clearinghouseState`. It returns at most five public wallet
 addresses with score evidence, coverage, timestamps, and validation state. An
 address is always presented as a public position candidate, never as proof of a
 person's identity or wallet ownership. Closed or old cards may have no match
 because the provider path covers current open positions.
+
+HTTP failures and GraphQL errors (including errors returned with HTTP 200) are
+reported separately from a successful search with no candidates. The tool
+distinguishes authentication/access failures, rate limits, rejected queries or
+parameters, other GraphQL errors, transport failures, and missing data through
+fixed reasons and warnings. Raw provider error messages and request context are
+never returned to the model. `scripts/check-agent-extension.ts` exercises the
+30-row page limit, pagination/search bounds, empty results, and error redaction.
 
 Assistant text uses an adaptive native reveal queue on top of Pi's real text
 deltas. Short backlogs resolve word by word with a fading leading edge and an

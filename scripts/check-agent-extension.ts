@@ -81,33 +81,45 @@ try {
 
   const originalFetch = globalThis.fetch;
   const candidateAddress = "0x1111111111111111111111111111111111111111";
+  const candidatePosition = {
+    address: candidateAddress,
+    size: 2,
+    notionalSize: 200,
+    entryPrice: 100,
+    liquidationPrice: 60,
+    unrealizedPnl: 10,
+  };
+  const hyperdashRequests: any[] = [];
+  let hyperdashOverride: ((body: any) => any) | undefined;
+  function candidatePage(positions: any[], totalCount: number, hasMore: boolean) {
+    return {
+      ok: true,
+      json: async () => ({
+        data: {
+          analytics: {
+            perpsTickerPositions: {
+              coin: "BTC", positions, totalCount, hasMore, timestamp: "2026-08-19T10:00:00Z",
+            },
+          },
+        },
+      }),
+    };
+  }
   process.env.KEROSENE_AGENT_HYPERDASH_API_KEY = "fixture-key";
   globalThis.fetch = (async (url: string, options: any) => {
     const body = JSON.parse(options?.body ?? "{}");
     if (String(url).includes("hyperdash")) {
-      return {
-        ok: true,
-        json: async () => ({
-          data: {
-            analytics: {
-              perpsTickerPositions: {
-                coin: "BTC",
-                positions: [{
-                  address: candidateAddress,
-                  size: 2,
-                  notionalSize: 200,
-                  entryPrice: 100,
-                  liquidationPrice: 60,
-                  unrealizedPnl: 10,
-                }],
-                totalCount: 1,
-                hasMore: false,
-                timestamp: "2026-08-19T10:00:00Z",
-              },
-            },
-          },
-        }),
-      };
+      hyperdashRequests.push(body);
+      assert.equal(options.headers.authorization, "Bearer fixture-key");
+      // Match the live provider contract, including HTTP-200 GraphQL failures.
+      if (body.variables.limit > 30) {
+        return {
+          ok: true,
+          json: async () => ({ errors: [{ message: "limit must be <= 30", extensions: { code: "BAD_USER_INPUT" } }] }),
+        };
+      }
+      if (hyperdashOverride) return hyperdashOverride(body);
+      return candidatePage([candidatePosition], 1, false);
     }
     if (body.type === "clearinghouseState") {
       return {
@@ -156,6 +168,7 @@ try {
     });
     assert.equal(gated.available, false);
     assert.equal(gated.reason, "explicit_pnl_card_attachment_required");
+    assert.equal(hyperdashRequests.length, 0);
 
     const snapshot = JSON.parse(await readFile(snapshotPath, "utf8"));
     snapshot._tool_data.assistant_request = { pnl_card_match_allowed: true };
@@ -172,6 +185,104 @@ try {
     assert.equal("identity" in matched.candidates[0], false);
     assert.equal(matched.candidates[0].hyperliquid_validated, true);
     assert.equal(matched.confidence, "high");
+    assert.equal(hyperdashRequests.length, 1);
+    assert.deepEqual(hyperdashRequests[0].variables, {
+      coin: "BTC", limit: 30, offset: 0, side: "long",
+      filters: { minEntry: 99.25, maxEntry: 100.75 },
+      sortBy: { field: "unrealizedPnl", order: "desc" },
+    });
+
+    const matchParams = { symbol: "BTC", side: "long", entry_price: 100 };
+    hyperdashRequests.length = 0;
+    hyperdashOverride = (body) => {
+      const { limit, offset } = body.variables;
+      return candidatePage(Array.from({ length: limit }, (_, index) => ({
+        ...candidatePosition,
+        address: `0x${(offset + index + 1).toString(16).padStart(40, "0")}`,
+      })), 600, true);
+    };
+    const bounded = await execute("kerosene_pnl_card_match", matchParams);
+    assert.equal(bounded.available, true);
+    assert.deepEqual(hyperdashRequests.map((request) => request.variables.offset),
+      Array.from({ length: 17 }, (_, index) => index * 30));
+    assert.deepEqual(hyperdashRequests.map((request) => request.variables.limit),
+      [...Array(16).fill(30), 20]);
+    assert.equal(bounded.coverage.hyperdash_rows_returned, 500);
+    assert.equal(bounded.coverage.hyperdash_total_count, 600);
+    assert.equal(bounded.coverage.hyperdash_truncated, true);
+    assert.equal(bounded.coverage.hyperliquid_validation_attempts, 10);
+    assert.equal(bounded.candidates.length, 5);
+
+    hyperdashRequests.length = 0;
+    hyperdashOverride = (body) => candidatePage(
+      Array(Math.min(body.variables.limit, 35 - body.variables.offset)).fill(candidatePosition),
+      35, body.variables.offset === 0,
+    );
+    const complete = await execute("kerosene_pnl_card_match", matchParams);
+    assert.equal(complete.available, true);
+    assert.equal(hyperdashRequests.length, 2);
+    assert.equal(complete.coverage.hyperdash_rows_returned, 35);
+    assert.equal(complete.coverage.hyperdash_truncated, false);
+
+    hyperdashOverride = () => candidatePage([], 0, false);
+    const empty = await execute("kerosene_pnl_card_match", matchParams);
+    assert.equal(empty.available, true);
+    assert.equal(empty.confidence, "none");
+    assert.equal(empty.coverage.hyperdash_rows_returned, 0);
+    assert.equal(empty.coverage.hyperdash_truncated, false);
+
+    for (const [code, suffix] of [
+      ["BAD_USER_INPUT", "request_rejected"],
+      ["GRAPHQL_VALIDATION_FAILED", "request_rejected"],
+      ["UNAUTHENTICATED", "authentication_failed"],
+      ["FORBIDDEN", "authentication_failed"],
+      ["RATE_LIMITED", "rate_limited"],
+      ["INTERNAL_SERVER_ERROR", "graphql_failed"],
+    ]) {
+      hyperdashOverride = () => ({
+        ok: true,
+        json: async () => ({ errors: [{
+          message: `upstream context fixture-key ${candidateAddress}`,
+          extensions: { code, private_context: "fixture-key" },
+        }] }),
+      });
+      const failed = await execute("kerosene_pnl_card_match", matchParams);
+      assert.equal(failed.available, false);
+      assert.equal(failed.reason, `hyperdash_candidate_${suffix}`);
+      assert.ok(failed.quality.warnings.length > 0);
+      assert.equal(JSON.stringify(failed).includes("fixture-key"), false);
+      assert.equal(JSON.stringify(failed).includes(candidateAddress), false);
+    }
+    for (const [status, suffix] of [
+      [400, "request_rejected"], [401, "authentication_failed"], [403, "authentication_failed"],
+      [429, "rate_limited"], [503, "request_failed"],
+    ] as const) {
+      hyperdashOverride = () => ({ ok: false, status });
+      const failed = await execute("kerosene_pnl_card_match", matchParams);
+      assert.equal(failed.available, false);
+      assert.equal(failed.reason, `hyperdash_candidate_${suffix}`);
+      assert.equal(failed.http_status, status);
+    }
+    hyperdashOverride = () => { throw new Error("network context fixture-key"); };
+    const networkFailure = await execute("kerosene_pnl_card_match", matchParams);
+    assert.equal(networkFailure.reason, "hyperdash_candidate_request_failed");
+    assert.equal(JSON.stringify(networkFailure).includes("fixture-key"), false);
+
+    for (const page of [null, {}, { positions: null }]) {
+      hyperdashOverride = () => ({
+        ok: true,
+        json: async () => ({ data: { analytics: { perpsTickerPositions: page } } }),
+      });
+      const missing = await execute("kerosene_pnl_card_match", matchParams);
+      assert.equal(missing.available, false);
+      assert.equal(missing.reason, "hyperdash_candidate_data_unavailable");
+    }
+
+    hyperdashRequests.length = 0;
+    delete process.env.KEROSENE_AGENT_HYPERDASH_API_KEY;
+    const noKey = await execute("kerosene_pnl_card_match", matchParams);
+    assert.equal(noKey.reason, "hyperdash_api_key_not_configured");
+    assert.equal(hyperdashRequests.length, 0);
   } finally {
     globalThis.fetch = originalFetch;
     delete process.env.KEROSENE_AGENT_HYPERDASH_API_KEY;

@@ -19,6 +19,8 @@ const MAX_MARKET_SYMBOLS = 20;
 const MAX_ACTIVITY_ROWS = 200;
 const MAX_JOURNAL_ROWS = 200;
 const MAX_POSITIONING_SYMBOLS = 3;
+// HyperDash caps perpsTickerPositions pages at 30, as in POSITIONING_INFO_LIMIT.
+const PNL_CARD_PAGE_SIZE = 30;
 const MAX_PNL_CARD_SEARCH_ROWS = 500;
 const MAX_PNL_CARD_RESULTS = 5;
 const MAX_PNL_CARD_VALIDATIONS = 10;
@@ -732,6 +734,12 @@ function calculateRisk(snapshot: JsonObject) {
   };
 }
 
+class DataProviderHttpError extends Error {
+  constructor(readonly status: number) {
+    super(`read-only data provider returned HTTP ${status}`);
+  }
+}
+
 async function postJson(url: string, body: unknown, headers: Record<string, string> = {}) {
   const response = await fetch(url, {
     method: "POST",
@@ -739,7 +747,7 @@ async function postJson(url: string, body: unknown, headers: Record<string, stri
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(30_000),
   });
-  if (!response.ok) throw new Error(`read-only data provider returned HTTP ${response.status}`);
+  if (!response.ok) throw new DataProviderHttpError(response.status);
   return response.json();
 }
 
@@ -1130,6 +1138,36 @@ async function fetchHyperliquidCandidatePosition(address: string, marketSymbol: 
   }
 }
 
+function pnlCardHyperdashFailure(payload?: JsonObject, error?: unknown) {
+  const httpStatus = error instanceof DataProviderHttpError ? error.status : null;
+  const errors = Array.isArray(payload?.errors) ? payload.errors.slice(0, 20) : [];
+  const codes = errors.map((item: JsonObject) => item?.extensions?.code);
+  // Classify upstream errors without returning their messages, extensions, or request context.
+  const authFailure = errors.some((item: JsonObject) => typeof item?.message === "string"
+    && /unauthorized|unauthenticated|forbidden|authentication|invalid (?:api key|token)/i.test(item.message));
+  let reason = "hyperdash_candidate_data_unavailable";
+  let warning = "HyperDash returned no usable candidate data; this does not mean there are no matching positions.";
+  if (httpStatus === 401 || httpStatus === 403 || authFailure
+      || codes.some((code: unknown) => code === "UNAUTHENTICATED" || code === "FORBIDDEN")) {
+    reason = "hyperdash_candidate_authentication_failed";
+    warning = "HyperDash rejected authentication or access. Check the HyperDash key and its access in Settings > Integrations.";
+  } else if (httpStatus === 429 || codes.some((code: unknown) => code === "RATE_LIMITED" || code === "TOO_MANY_REQUESTS")) {
+    reason = "hyperdash_candidate_rate_limited";
+    warning = "HyperDash rate-limited the candidate search. Try again later.";
+  } else if (httpStatus === 400 || codes.some((code: unknown) =>
+    code === "BAD_USER_INPUT" || code === "GRAPHQL_VALIDATION_FAILED" || code === "GRAPHQL_PARSE_FAILED")) {
+    reason = "hyperdash_candidate_request_rejected";
+    warning = "HyperDash rejected the candidate query or parameters. This is a request compatibility problem, not an empty match result.";
+  } else if (errors.length) {
+    reason = "hyperdash_candidate_graphql_failed";
+    warning = "HyperDash returned a GraphQL error during the candidate search; matching could not be completed.";
+  } else if (error !== undefined) {
+    reason = "hyperdash_candidate_request_failed";
+    warning = "The HyperDash candidate request failed before usable data was received. Try again later.";
+  }
+  return { available: false, reason, http_status: httpStatus, warnings: [warning] };
+}
+
 async function fetchPnlCardMatches(snapshot: JsonObject, params: JsonObject) {
   if (snapshot?._tool_data?.assistant_request?.pnl_card_match_allowed !== true) {
     return { available: false, reason: "explicit_pnl_card_attachment_required" };
@@ -1190,7 +1228,8 @@ async function fetchPnlCardMatches(snapshot: JsonObject, params: JsonObject) {
   let totalCount: number | null = null;
   let hasMore = false;
   let providerTimestamp: unknown = null;
-  for (let offset = 0; offset < MAX_PNL_CARD_SEARCH_ROWS; offset += 100) {
+  for (let offset = 0; offset < MAX_PNL_CARD_SEARCH_ROWS; offset += PNL_CARD_PAGE_SIZE) {
+    const limit = Math.min(PNL_CARD_PAGE_SIZE, MAX_PNL_CARD_SEARCH_ROWS - offset);
     let payload: JsonObject;
     try {
       payload = await postJson(
@@ -1199,7 +1238,7 @@ async function fetchPnlCardMatches(snapshot: JsonObject, params: JsonObject) {
           operationName: "KerosenePnlCardCandidates",
           variables: {
             coin: market.symbol,
-            limit: 100,
+            limit,
             offset,
             side: params.side ?? "all",
             filters,
@@ -1209,12 +1248,14 @@ async function fetchPnlCardMatches(snapshot: JsonObject, params: JsonObject) {
         },
         headers,
       );
-    } catch {
-      return { available: false, reason: "hyperdash_candidate_request_failed" };
+    } catch (error) {
+      return pnlCardHyperdashFailure(undefined, error);
     }
     const page = payload?.data?.analytics?.perpsTickerPositions;
-    if (!page) return { available: false, reason: "hyperdash_candidate_data_unavailable" };
-    const pageRows = Array.isArray(page.positions) ? page.positions : [];
+    if ((Array.isArray(payload?.errors) && payload.errors.length) || !Array.isArray(page?.positions)) {
+      return pnlCardHyperdashFailure(payload);
+    }
+    const pageRows = page.positions.slice(0, limit);
     rows.push(...pageRows);
     totalCount = finiteNumber(page.totalCount);
     hasMore = Boolean(page.hasMore);
@@ -2074,6 +2115,7 @@ export default function keroseneExtension(pi: ExtensionAPI) {
       "Pass only numbers visibly supported by the card; omit ambiguous or absent fields instead of guessing.",
       "Describe returned addresses as public position candidates, never as proof of a person's identity or wallet ownership.",
       "Report search truncation, validation state, timestamps, score separation, and the current-position limitation.",
+      "If unavailable, explain the returned reason and warnings; a provider failure is not a no-match result.",
     ],
     parameters: Type.Object({
       symbol: Type.String({ minLength: 1, maxLength: 80 }),
