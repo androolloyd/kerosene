@@ -166,7 +166,9 @@ Changes that affect minimum usable layout dimensions should call
 
 Settings > Themes > Appearance > Interface includes **Divider lines**, enabled
 by default. Turning it off hides widget outlines, title-bar separators, and
-hovered/active resize lines in the main window and Canvas workspaces. The
+hovered/active resize lines in the main window and Canvas workspaces. It also
+hides the account summary and custom title-bar borders, plus the ticker tape's
+outline, item separators, and exchange-stat separator. The
 **Divider** slider still sets the gap in pixels; resizing, dragging, corner
 radii, padding, and rules inside widgets keep their existing behavior.
 

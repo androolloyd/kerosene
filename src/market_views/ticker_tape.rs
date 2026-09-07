@@ -55,6 +55,7 @@ impl TradingTerminal {
         let items = self.ticker_tape_items();
         let denomination = self.display_denomination_context();
         let pane_corner_radius = self.pane_corner_radius;
+        let dividers_enabled = self.pane_dividers_enabled;
         let stats_width = (available_width - TICKER_TAPE_SECTION_SEPARATOR_WIDTH)
             .clamp(0.0, TICKER_TAPE_EXCHANGE_STATS_WIDTH);
         let tape_available_width =
@@ -94,7 +95,7 @@ impl TradingTerminal {
                     let segment_width = item_width + TICKER_TAPE_SEPARATOR_WIDTH;
                     let segment = row![
                         ticker_tape_item(item, &denomination, &theme, item_width),
-                        ticker_tape_separator(),
+                        ticker_tape_separator(dividers_enabled),
                     ]
                     .spacing(0)
                     .width(Length::Fixed(segment_width))
@@ -119,7 +120,7 @@ impl TradingTerminal {
         container(
             row![
                 tape_layer,
-                ticker_tape_section_separator(),
+                ticker_tape_section_separator(dividers_enabled),
                 ticker_tape_exchange_stats(volume_24h, open_interest, &theme, stats_width),
             ]
             .spacing(0)
@@ -130,7 +131,9 @@ impl TradingTerminal {
         .width(Fill)
         .height(Length::Fixed(TICKER_TAPE_HEIGHT))
         .clip(true)
-        .style(move |theme: &Theme| ticker_tape_bar_style(theme, pane_corner_radius))
+        .style(move |theme: &Theme| {
+            ticker_tape_bar_style(theme, pane_corner_radius, dividers_enabled)
+        })
         .into()
     }
 

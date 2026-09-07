@@ -1,7 +1,9 @@
 use crate::api::{ExchangeSymbol, MarketType, OutcomeSymbolInfo};
 use crate::app_state::TradingTerminal;
 use crate::denomination::DisplayDenominationContext;
+use iced::{Color, Theme};
 
+use super::components::{ticker_tape_bar_style, ticker_tape_divider_style};
 use super::formatting::{
     TickerTapeItem, exchange_stat_usd_label, percent_change, percent_label, price_label,
     ticker_tape_item_width,
@@ -12,6 +14,31 @@ use super::{TICKER_TAPE_ITEM_MAX_WIDTH, TICKER_TAPE_ITEM_MIN_WIDTH};
 // ---------------------------------------------------------------------------
 // Ticker Tape Formatting Tests
 // ---------------------------------------------------------------------------
+
+#[test]
+fn pane_dividers_hide_ticker_tape_border_and_separators_without_changing_geometry() {
+    for theme in [Theme::Dark, Theme::Light] {
+        let visible = ticker_tape_bar_style(&theme, 8.0, true);
+        let hidden = ticker_tape_bar_style(&theme, 8.0, false);
+
+        assert!(visible.border.color.a > 0.0);
+        assert_eq!(hidden.border.color, Color::TRANSPARENT);
+        assert_eq!(hidden.background, visible.background);
+        assert_eq!(hidden.text_color, visible.text_color);
+        assert_eq!(hidden.border.width, visible.border.width);
+        assert_eq!(hidden.border.radius, visible.border.radius);
+
+        for opacity in [0.10, 0.28] {
+            let visible = ticker_tape_divider_style(&theme, opacity, true);
+            let hidden = ticker_tape_divider_style(&theme, opacity, false);
+            assert_eq!(visible.color.a, opacity);
+            assert_eq!(hidden.color, Color::TRANSPARENT);
+            assert_eq!(hidden.radius, visible.radius);
+            assert_eq!(hidden.fill_mode, visible.fill_mode);
+            assert_eq!(hidden.snap, visible.snap);
+        }
+    }
+}
 
 fn outcome_symbol(key: &str) -> ExchangeSymbol {
     ExchangeSymbol {

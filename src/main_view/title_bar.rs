@@ -186,7 +186,12 @@ impl TradingTerminal {
         let framed_content: Element<'a, Message> = column![
             container(self.view_window_title_bar(window_id, false))
                 .width(Fill)
-                .style(crate::account_views::account_summary_bar_style),
+                .style(|theme| {
+                    crate::account_views::account_summary_bar_style(
+                        theme,
+                        self.pane_dividers_enabled,
+                    )
+                }),
             content
         ]
         .width(Fill)
@@ -212,7 +217,12 @@ impl TradingTerminal {
         column![
             container(self.view_window_title_bar(window_id, false))
                 .width(Fill)
-                .style(crate::account_views::account_summary_bar_style),
+                .style(|theme| {
+                    crate::account_views::account_summary_bar_style(
+                        theme,
+                        self.pane_dividers_enabled,
+                    )
+                }),
             content
         ]
         .width(Fill)
@@ -241,7 +251,9 @@ impl TradingTerminal {
             .width(Fill),
         )
         .width(Fill)
-        .style(crate::account_views::account_summary_bar_style)
+        .style(|theme| {
+            crate::account_views::account_summary_bar_style(theme, self.pane_dividers_enabled)
+        })
         .into()
     }
 

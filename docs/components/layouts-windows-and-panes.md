@@ -84,6 +84,8 @@ carry both `WorkspaceId` and `pane_grid::Pane`.
 The global Appearance **Divider lines** toggle hides pane outlines, title-bar
 separators, and resize highlight lines through the shared grid styles. It
 applies to the main and Canvas grids without changing gaps or resize hit areas.
+The account summary, custom window headers, and ticker tape also use the same
+toggle for their borders and tape separators.
 
 `main_view/panes.rs` is the final dispatch point:
 

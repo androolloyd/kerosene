@@ -68,36 +68,46 @@ pub(super) fn ticker_tape_item(
     .into()
 }
 
-pub(super) fn ticker_tape_separator() -> Element<'static, Message> {
-    container(rule::vertical(1).style(|theme: &Theme| rule::Style {
-        color: Color {
-            a: 0.10,
-            ..theme.extended_palette().background.weak.text
-        },
-        radius: 0.0.into(),
-        fill_mode: rule::FillMode::Full,
-        snap: true,
-    }))
+pub(super) fn ticker_tape_separator(dividers_enabled: bool) -> Element<'static, Message> {
+    container(
+        rule::vertical(1)
+            .style(move |theme: &Theme| ticker_tape_divider_style(theme, 0.10, dividers_enabled)),
+    )
     .width(Length::Fixed(TICKER_TAPE_SEPARATOR_WIDTH))
     .height(18)
     .center_y(Length::Fixed(TICKER_TAPE_HEIGHT))
     .into()
 }
 
-pub(super) fn ticker_tape_section_separator() -> Element<'static, Message> {
-    container(rule::vertical(1).style(|theme: &Theme| rule::Style {
-        color: Color {
-            a: 0.28,
-            ..theme.extended_palette().background.weak.text
-        },
-        radius: 0.0.into(),
-        fill_mode: rule::FillMode::Full,
-        snap: true,
-    }))
+pub(super) fn ticker_tape_section_separator(dividers_enabled: bool) -> Element<'static, Message> {
+    container(
+        rule::vertical(1)
+            .style(move |theme: &Theme| ticker_tape_divider_style(theme, 0.28, dividers_enabled)),
+    )
     .width(Length::Fixed(TICKER_TAPE_SECTION_SEPARATOR_WIDTH))
     .height(22)
     .center_y(Length::Fixed(TICKER_TAPE_HEIGHT))
     .into()
+}
+
+pub(super) fn ticker_tape_divider_style(
+    theme: &Theme,
+    opacity: f32,
+    dividers_enabled: bool,
+) -> rule::Style {
+    rule::Style {
+        color: if dividers_enabled {
+            Color {
+                a: opacity,
+                ..theme.extended_palette().background.weak.text
+            }
+        } else {
+            Color::TRANSPARENT
+        },
+        radius: 0.0.into(),
+        fill_mode: rule::FillMode::Full,
+        snap: true,
+    }
 }
 
 pub(super) fn ticker_tape_exchange_stats(
@@ -140,7 +150,11 @@ fn ticker_tape_exchange_stat(
     .into()
 }
 
-pub(super) fn ticker_tape_bar_style(theme: &Theme, corner_radius: f32) -> container_style::Style {
+pub(super) fn ticker_tape_bar_style(
+    theme: &Theme,
+    corner_radius: f32,
+    dividers_enabled: bool,
+) -> container_style::Style {
     let mut border_color = theme.extended_palette().background.strong.text;
     border_color.a = 0.10;
 
@@ -149,7 +163,11 @@ pub(super) fn ticker_tape_bar_style(theme: &Theme, corner_radius: f32) -> contai
         text_color: Some(theme.palette().text),
         border: iced::Border {
             width: 1.0,
-            color: border_color,
+            color: if dividers_enabled {
+                border_color
+            } else {
+                Color::TRANSPARENT
+            },
             radius: corner_radius.into(),
         },
         ..Default::default()

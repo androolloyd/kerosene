@@ -26,7 +26,7 @@ impl TradingTerminal {
         container(self.view_account_summary())
             .width(Fill)
             .height(Length::Fixed(self.account_summary_bar_height()))
-            .style(account_summary_bar_style)
+            .style(|theme| account_summary_bar_style(theme, self.pane_dividers_enabled))
             .into()
     }
 
@@ -89,7 +89,10 @@ impl TradingTerminal {
     }
 }
 
-pub(crate) fn account_summary_bar_style(theme: &Theme) -> container_style::Style {
+pub(crate) fn account_summary_bar_style(
+    theme: &Theme,
+    dividers_enabled: bool,
+) -> container_style::Style {
     let mut border_color = theme.extended_palette().background.strong.text;
     border_color.a = 0.10;
 
@@ -98,7 +101,11 @@ pub(crate) fn account_summary_bar_style(theme: &Theme) -> container_style::Style
         text_color: Some(theme.palette().text),
         border: iced::Border {
             width: ACCOUNT_SUMMARY_BORDER_WIDTH,
-            color: border_color,
+            color: if dividers_enabled {
+                border_color
+            } else {
+                iced::Color::TRANSPARENT
+            },
             radius: 0.0.into(),
         },
         ..Default::default()
@@ -108,6 +115,21 @@ pub(crate) fn account_summary_bar_style(theme: &Theme) -> container_style::Style
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn pane_dividers_hide_summary_border_without_changing_surface_or_geometry() {
+        for theme in [Theme::Dark, Theme::Light] {
+            let visible = account_summary_bar_style(&theme, true);
+            let hidden = account_summary_bar_style(&theme, false);
+
+            assert!(visible.border.color.a > 0.0);
+            assert_eq!(hidden.border.color, iced::Color::TRANSPARENT);
+            assert_eq!(hidden.background, visible.background);
+            assert_eq!(hidden.text_color, visible.text_color);
+            assert_eq!(hidden.border.width, visible.border.width);
+            assert_eq!(hidden.border.radius, visible.border.radius);
+        }
+    }
 
     fn connected_terminal(content_width: Option<f32>) -> TradingTerminal {
         let mut terminal = TradingTerminal::boot().0;
