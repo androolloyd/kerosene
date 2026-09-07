@@ -28,6 +28,7 @@ impl TradingTerminal {
             | Message::AddLiquidationsDistributionPane
             | Message::AddTrackedTradesPane
             | Message::AddTelegramFeedPane
+            | Message::AddCompactWalletTrackerPane
             | Message::AddXFeedPane
             | Message::AddAdvancedOrdersPane
             | Message::AddOutcomesPane

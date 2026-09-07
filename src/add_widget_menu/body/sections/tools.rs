@@ -22,6 +22,15 @@ pub(in crate::add_widget_menu::body) fn add_tool_section(
             theme,
         ))
         .push(menu_item(
+            "Compact Wallet Tracker",
+            "Pane",
+            Some(Message::BeginWidgetPlacement(
+                AddWidgetKind::CompactWalletTracker,
+            )),
+            context.can_add_pane,
+            theme,
+        ))
+        .push(menu_item(
             "Live Watchlist",
             "Pane",
             Some(Message::BeginWidgetPlacement(AddWidgetKind::LiveWatchlist)),

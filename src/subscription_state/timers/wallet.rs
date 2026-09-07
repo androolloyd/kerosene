@@ -13,21 +13,50 @@ impl TradingTerminal {
         &self,
         subs: &mut Vec<Subscription<Message>>,
     ) {
-        if self.wallet_tracker.window_id.is_some()
-            && !self.wallet_tracker.tracked_addresses.is_empty()
-        {
+        if self.wallet_tracker_is_visible() && !self.wallet_tracker.tracked_addresses.is_empty() {
             subs.push(
                 iced::time::every(std::time::Duration::from_secs(
                     WALLET_TRACKER_CORE_TICK_SECS,
                 ))
                 .map(|_| Message::WalletTrackerRefreshDue),
             );
-            subs.push(
-                iced::time::every(std::time::Duration::from_secs(
-                    WALLET_TRACKER_ORDER_TICK_SECS,
-                ))
-                .map(|_| Message::WalletTrackerRefreshOrdersDue),
-            );
+            if self.wallet_tracker.window_id.is_some() {
+                subs.push(
+                    iced::time::every(std::time::Duration::from_secs(
+                        WALLET_TRACKER_ORDER_TICK_SECS,
+                    ))
+                    .map(|_| Message::WalletTrackerRefreshOrdersDue),
+                );
+            }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::pane_state::PaneKind;
+
+    #[test]
+    fn compact_wallet_timer_runs_without_tracker_window_and_skips_order_counts() {
+        let mut terminal =
+            TradingTerminal::boot_from_config(crate::config::KeroseneConfig::default()).0;
+        terminal.panes = iced::widget::pane_grid::State::new(PaneKind::CompactWalletTracker(0)).0;
+        terminal.wallet_tracker.tracked_addresses =
+            vec!["0xabc0000000000000000000000000000000000000".into()];
+        let subscriptions = |terminal: &TradingTerminal| {
+            let mut subs = Vec::new();
+            terminal.push_wallet_tracker_timer_subscriptions(&mut subs);
+            subs.len()
+        };
+        assert_eq!(subscriptions(&terminal), 1);
+        terminal.wallet_tracker.window_id = Some(iced::window::Id::unique());
+        assert_eq!(subscriptions(&terminal), 2);
+        terminal.wallet_tracker.window_id = None;
+        terminal.panes = iced::widget::pane_grid::State::new(PaneKind::Watchlist).0;
+        assert_eq!(subscriptions(&terminal), 0);
+        terminal.panes = iced::widget::pane_grid::State::new(PaneKind::CompactWalletTracker(0)).0;
+        terminal.wallet_tracker.tracked_addresses.clear();
+        assert_eq!(subscriptions(&terminal), 0);
     }
 }

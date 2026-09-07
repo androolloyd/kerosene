@@ -319,3 +319,60 @@ fn serialized_config_omits_removed_assistant_settings() {
     assert!(!json.contains("assistant_use_account_context"));
     assert!(!json.contains("assistant_allow_code_execution"));
 }
+
+#[test]
+fn compact_wallet_pane_and_padding_round_trip_without_wallet_data() {
+    let layout = PaneLayoutConfig::Leaf(PaneKindConfig::CompactWalletTracker { id: 42 });
+    let json = serde_json::to_value(&layout).expect("serialize compact pane");
+    assert_eq!(
+        json,
+        serde_json::json!({"Leaf": {"CompactWalletTracker": {"id": 42}}})
+    );
+    assert_eq!(
+        value_from_json::<PaneLayoutConfig>(json, "compact pane"),
+        layout
+    );
+    let config: KeroseneConfig = value_from_json(
+        serde_json::json!({
+            "pane_layout": {"Leaf": {"CompactWalletTracker": {"id": 42}}},
+            "widget_padding": {"default_px": 0.0, "overrides": [{
+                "target": {"CompactWalletTracker": {"id": 42}}, "padding_px": 8.0
+            }]}
+        }),
+        "compact pane without instance configs",
+    );
+    assert_eq!(config.pane_layout, Some(layout));
+    assert_eq!(config.widget_padding.overrides.len(), 1);
+    assert_eq!(
+        config.widget_padding.overrides[0].target,
+        crate::config::WidgetPaddingTargetConfig::CompactWalletTracker { id: 42 }
+    );
+    let restored: KeroseneConfig = value_from_json(
+        serde_json::to_value(config.clone()).expect("config"),
+        "round trip config",
+    );
+    assert_eq!(restored.widget_padding, config.widget_padding);
+}
+
+#[test]
+fn compact_wallet_import_repairs_duplicate_pane_ids() {
+    let _guard = config_warning_guard();
+    let mut layout = crate::app_state::TradingTerminal::boot_from_config(KeroseneConfig::default())
+        .0
+        .saved_layout_snapshot("duplicate compact panes".into());
+    layout.pane_layout = Some(PaneLayoutConfig::Split {
+        axis: AxisConfig::Vertical,
+        ratio: 0.5,
+        a: Box::new(PaneLayoutConfig::Leaf(
+            PaneKindConfig::CompactWalletTracker { id: 7 },
+        )),
+        b: Box::new(PaneLayoutConfig::Leaf(
+            PaneKindConfig::CompactWalletTracker { id: 7 },
+        )),
+    });
+    crate::config::normalize_imported_saved_layout(&mut layout);
+    let Some(PaneLayoutConfig::Split { a, b, .. }) = layout.pane_layout else {
+        panic!("split layout")
+    };
+    assert_ne!(a, b);
+}

@@ -46,6 +46,7 @@ pub(crate) enum AlfredCommandId {
     AddCalendarPane,
     AddOrderBookPane,
     AddLiveWatchlistPane,
+    AddCompactWalletTrackerPane,
     ToggleTickerTape,
     AddPositioningInfoPane,
     AddAdvancedOrdersPane,

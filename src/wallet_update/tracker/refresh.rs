@@ -9,7 +9,10 @@ impl TradingTerminal {
                 self.queue_wallet_tracker_core_refresh_all();
                 self.refresh_next_wallet_tracker_core()
             }
-            Message::WalletTrackerRefreshDue => self.refresh_next_wallet_tracker_core(),
+            Message::WalletTrackerRefreshDue => Task::batch([
+                self.refresh_next_wallet_tracker_core(),
+                self.refresh_compact_wallets_due(),
+            ]),
             Message::WalletTrackerRefreshOne(address) => {
                 let address = address.into_string();
                 if self.wallet_tracker.tracked_addresses.contains(&address) {

@@ -1,4 +1,5 @@
 mod address_actions;
+mod compact;
 mod details_header;
 mod details_summary;
 mod numbers;

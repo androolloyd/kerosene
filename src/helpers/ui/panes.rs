@@ -21,6 +21,7 @@ pub fn pane_title(kind: &PaneKind) -> String {
         PaneKind::Settings => "Theme & Settings".to_string(),
         PaneKind::Calendar => "Economic Calendar".to_string(),
         PaneKind::LiveWatchlist(_) => "Live Watchlist".to_string(),
+        PaneKind::CompactWalletTracker(_) => "Compact Wallet Tracker".to_string(),
         PaneKind::PositioningInfo(_) => "Positioning Information".to_string(),
         PaneKind::SessionData(_) => "Session Data".to_string(),
         PaneKind::XFeed(_) => "X Feed".to_string(),

@@ -107,6 +107,8 @@ fn redacted_presence<T>(value: &Option<T>) -> Option<&'static str> {
 }
 
 pub(crate) struct WalletTrackerState {
+    pub(crate) compact_selections:
+        HashMap<super::CompactWalletTrackerId, super::compact::CompactWalletSelection>,
     pub(crate) window_id: Option<window::Id>,
     pub(crate) open: bool,
     pub(crate) width: f32,
@@ -149,6 +151,7 @@ impl WalletTrackerState {
         }
 
         Self {
+            compact_selections: HashMap::new(),
             window_id: None,
             open: cfg.open,
             width: cfg.width,

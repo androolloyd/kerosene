@@ -83,7 +83,6 @@ impl DisplayDenominationContext {
         self.format_active_amount(sign, format_decimal_with_commas(display_value, decimals))
     }
 
-    #[cfg(test)]
     pub(crate) fn format_signed_compact_value(&self, usd_value: f64) -> String {
         let Some(value) = self.convert_usd_value(usd_value) else {
             return invalid_data_placeholder();

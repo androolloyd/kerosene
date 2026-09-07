@@ -180,6 +180,9 @@ impl TradingTerminal {
                             PaneKind::SessionData(id) => {
                                 self.session_data.remove(&id);
                             }
+                            PaneKind::CompactWalletTracker(id) => {
+                                self.wallet_tracker.compact_selections.remove(&id);
+                            }
                             PaneKind::XFeed(id) => {
                                 self.x_feed.instances.remove(&id);
                             }

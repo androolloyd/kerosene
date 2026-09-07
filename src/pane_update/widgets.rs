@@ -152,6 +152,27 @@ impl TradingTerminal {
                     return self.request_telegram_feed_refresh();
                 }
             }
+            Message::AddCompactWalletTrackerPane => {
+                self.add_widget_menu_open = false;
+                let mut id = 0;
+                while self.workspace_pane_kinds().any(|(_, _, kind)| {
+                    matches!(kind, PaneKind::CompactWalletTracker(existing) if *existing == id)
+                }) {
+                    id += 1;
+                }
+                if self
+                    .add_pane_next_to_focus(
+                        workspace,
+                        self.add_widget_axis(),
+                        PaneKind::CompactWalletTracker(id),
+                        "Compact Wallet Tracker",
+                    )
+                    .is_some()
+                {
+                    self.wallet_tracker.compact_selections.remove(&id);
+                    return self.refresh_next_wallet_tracker_core();
+                }
+            }
             Message::AddXFeedPane => {
                 self.add_widget_menu_open = false;
                 let mut id = 0;

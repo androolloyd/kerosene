@@ -178,6 +178,12 @@ impl TradingTerminal {
     }
 
     pub(crate) fn invalidate_wallet_read_data_requests(&mut self) {
+        for selection in self.wallet_tracker.compact_selections.values_mut() {
+            selection.pending_request = None;
+            selection.last_attempt_ms = None;
+            selection.data = None;
+            selection.error = None;
+        }
         for state in self.wallet_detail_windows.values_mut() {
             if state.loading {
                 state.loading = false;

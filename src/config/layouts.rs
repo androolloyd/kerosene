@@ -118,6 +118,9 @@ pub enum PaneKindConfig {
     LiveWatchlist {
         id: u64,
     },
+    CompactWalletTracker {
+        id: u64,
+    },
     PositioningInfo {
         id: u64,
     },
@@ -160,6 +163,7 @@ pub enum WidgetPaddingTargetConfig {
     OrderBook { id: u64 },
     Watchlist,
     LiveWatchlist { id: u64 },
+    CompactWalletTracker { id: u64 },
     PositioningInfo { id: u64 },
     SessionData { id: u64 },
     XFeed { id: u64 },

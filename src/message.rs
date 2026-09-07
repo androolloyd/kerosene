@@ -846,6 +846,7 @@ pub(crate) enum Message {
     AddTrackedTradesPane,
     AddTelegramFeedPane,
     AddXFeedPane,
+    AddCompactWalletTrackerPane,
     AddOutcomesPane,
     AddHypeEtfsPane,
     AddHypeUnstakingQueuePane,
@@ -988,6 +989,15 @@ pub(crate) enum Message {
         context: OneShotPlacementContext,
         result: Box<Result<api::OrderStatusResult, String>>,
     },
+    CompactWalletSelected(crate::wallet_state::CompactWalletTrackerId, RedactedAddress),
+    CompactWalletBack(crate::wallet_state::CompactWalletTrackerId),
+    CompactWalletRefresh(crate::wallet_state::CompactWalletTrackerId),
+    CompactWalletDetailsLoaded(
+        crate::wallet_state::CompactWalletTrackerId,
+        u64,
+        ReadDataRequestContext,
+        crate::wallet_state::compact::CompactWalletDetailsResult,
+    ),
     OpenWalletDetailsWindow(RedactedAddress),
     RefreshWalletDetails(window::Id),
     WalletDetailsLoaded(

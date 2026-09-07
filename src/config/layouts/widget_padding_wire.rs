@@ -54,8 +54,14 @@ impl<'de> Visitor<'de> for WidgetPaddingTargetVisitor {
             "Outcomes" => Ok(known(WidgetPaddingTargetConfig::Outcomes)),
             "HypeEtfs" => Ok(known(WidgetPaddingTargetConfig::HypeEtfs)),
             "HypeUnstakingQueue" => Ok(known(WidgetPaddingTargetConfig::HypeUnstakingQueue)),
-            "Chart" | "OrderBook" | "LiveWatchlist" | "PositioningInfo" | "SessionData"
-            | "XFeed" | "SpaghettiChart" => Err(E::custom(format!(
+            "Chart"
+            | "OrderBook"
+            | "LiveWatchlist"
+            | "PositioningInfo"
+            | "SessionData"
+            | "XFeed"
+            | "SpaghettiChart"
+            | "CompactWalletTracker" => Err(E::custom(format!(
                 "widget padding target '{value}' requires a payload"
             ))),
             _ => Ok(WidgetPaddingTargetConfigWire::Unknown),
@@ -88,6 +94,14 @@ impl<'de> Visitor<'de> for WidgetPaddingTargetVisitor {
                 }
                 let payload = map.next_value::<Payload>()?;
                 known(WidgetPaddingTargetConfig::OrderBook { id: payload.id })
+            }
+            "CompactWalletTracker" => {
+                #[derive(Deserialize)]
+                struct Payload {
+                    id: u64,
+                }
+                let payload = map.next_value::<Payload>()?;
+                known(WidgetPaddingTargetConfig::CompactWalletTracker { id: payload.id })
             }
             "LiveWatchlist" => {
                 #[derive(Deserialize)]

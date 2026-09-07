@@ -199,6 +199,38 @@ partial spot total as authoritative.
 Tracked wallets are persisted, but any private trading keys are not part of
 wallet tracker state.
 
+### Compact Wallet Tracker
+
+The add-widget menu and Alfred offer a Compact Wallet Tracker pane for the main
+workspace or a Canvas. It shares the existing tracked wallet list, labels, and
+summary snapshots. Its table contains only wallet label, account value,
+unrealized PnL, and position bias. Bias uses gross long/short notional: a side
+needs at least two thirds of exposure to show Long or Short; mixed exposure
+shows Mixed, zero exposure shows Flat, and missing or invalid exposure shows an
+unavailable value. Monetary values follow the display denomination and abbreviate
+large amounts to fit narrow panes. Stale or degraded snapshots have a warning
+marker and tooltip.
+
+Clicking a wallet replaces that pane's list with its perpetual positions,
+including HIP-3 symbols. Rows show side, leverage, size, value, and unrealized
+PnL; wider panes also show entry price. Back returns to the wallet list. Each
+pane selects independently and never opens a detail window or changes the active
+trading account. Wallet membership and labels are managed in the existing tracker.
+
+`wallet_state/compact.rs`, `wallet_update/compact.rs`, and
+`wallet_views/compact.rs` own the pane's transient selection, request handling,
+and views. The existing five-second wallet timer stays active while a compact
+pane is open, even with the tracker window closed. It schedules due summary
+reads and refreshes selected positions at a one-minute cadence, with manual
+refresh available. Failed detail refreshes retain the previous snapshot and
+retry after a minute. Unique request IDs reject late replies after navigation,
+pane reuse, or layout changes; provider/key invalidation clears cached details
+and pending requests. Position rows respect hidden-symbol settings.
+
+Layouts persist `CompactWalletTracker { id }` and its optional padding override.
+There is no separate instance config or persisted wallet selection: restored
+panes start on the shared wallet list. Imported duplicate IDs are repaired.
+
 ## Wallet Details
 
 Wallet detail windows use `window::Id` and are rendered outside the main pane

@@ -20,6 +20,7 @@ impl WidgetPaddingTargetConfig {
             PaneKind::OrderBook(id) => Self::OrderBook { id: *id },
             PaneKind::Watchlist => Self::Watchlist,
             PaneKind::LiveWatchlist(id) => Self::LiveWatchlist { id: *id },
+            PaneKind::CompactWalletTracker(id) => Self::CompactWalletTracker { id: *id },
             PaneKind::PositioningInfo(id) => Self::PositioningInfo { id: *id },
             PaneKind::SessionData(id) => Self::SessionData { id: *id },
             PaneKind::XFeed(id) => Self::XFeed { id: *id },

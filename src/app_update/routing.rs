@@ -114,6 +114,7 @@ pub(super) fn message_route(message: &Message) -> UpdateRoute {
         | Message::AddAdvancedOrdersPane
         | Message::AddTrackedTradesPane
         | Message::AddTelegramFeedPane
+        | Message::AddCompactWalletTrackerPane
         | Message::AddXFeedPane
         | Message::AddOutcomesPane
         | Message::AddHypeEtfsPane
@@ -514,6 +515,10 @@ pub(super) fn message_route(message: &Message) -> UpdateRoute {
         Message::OpenWalletTrackerWindow
         | Message::OpenWalletDetailsWindow(_)
         | Message::RefreshWalletDetails(_)
+        | Message::CompactWalletSelected(_, _)
+        | Message::CompactWalletBack(_)
+        | Message::CompactWalletRefresh(_)
+        | Message::CompactWalletDetailsLoaded(_, _, _, _)
         | Message::WalletDetailsLoaded(_, _, _, _)
         | Message::WalletDetailsWsUpdate(_, _)
         | Message::WalletTrackerInputChanged(_)

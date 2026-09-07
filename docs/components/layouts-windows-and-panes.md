@@ -28,6 +28,7 @@ instance-aware variants for multi-instance widgets:
 - `Chart(ChartId)`
 - `OrderBook(OrderBookId)`
 - `LiveWatchlist(LiveWatchlistId)`
+- `CompactWalletTracker(CompactWalletTrackerId)`
 - `PositioningInfo(PositioningInfoId)`
 - `SessionData(SessionDataId)`
 - `SpaghettiChart(SpaghettiChartId)`
@@ -86,6 +87,7 @@ carry both `WorkspaceId` and `pane_grid::Pane`.
 PaneKind::Chart(id) -> view_chart(id, chart_count)
 PaneKind::OrderBook(id) -> view_order_book(id)
 PaneKind::LiveWatchlist(id) -> view_live_watchlist(id)
+PaneKind::CompactWalletTracker(id) -> view_compact_wallet_tracker(id)
 ...
 ```
 

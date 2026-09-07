@@ -222,3 +222,25 @@ fn hyperliquid_proxy_settings_route_to_settings() {
         assert_route(message, UpdateRoute::Settings);
     }
 }
+
+#[test]
+fn compact_wallet_routes_reach_panes_and_wallet_tracker() {
+    assert_route(Message::AddCompactWalletTrackerPane, UpdateRoute::Panes);
+    for message in [
+        Message::CompactWalletSelected(7, "0xabc0000000000000000000000000000000000000".into()),
+        Message::CompactWalletBack(7),
+        Message::CompactWalletRefresh(7),
+        Message::CompactWalletDetailsLoaded(
+            7,
+            1,
+            crate::read_data_provider::ReadDataRequestContext {
+                provider: crate::config::ReadDataProvider::Hyperliquid,
+                read_data_provider_generation: 0,
+                hydromancer_key_generation: 0,
+            },
+            crate::wallet_state::compact::CompactWalletDetailsResult(Err("failed".into())),
+        ),
+    ] {
+        assert_route(message, UpdateRoute::WalletTracker);
+    }
+}

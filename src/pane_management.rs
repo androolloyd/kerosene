@@ -35,6 +35,7 @@ pub(crate) enum AddWidgetKind {
     Calendar,
     OrderBook,
     LiveWatchlist,
+    CompactWalletTracker,
     PositioningInfo,
     AdvancedOrders,
 }
@@ -60,6 +61,7 @@ impl AddWidgetKind {
             Self::Calendar => "Calendar",
             Self::OrderBook => "Order Book",
             Self::LiveWatchlist => "Live Watchlist",
+            Self::CompactWalletTracker => "Compact Wallet Tracker",
             Self::PositioningInfo => "Positioning Information",
             Self::AdvancedOrders => "Advanced Orders",
         }
@@ -178,6 +180,7 @@ impl TradingTerminal {
                     | AddWidgetKind::SessionData
                     | AddWidgetKind::XFeed
                     | AddWidgetKind::OrderBook
+                    | AddWidgetKind::CompactWalletTracker
                     | AddWidgetKind::LiveWatchlist
                     | AddWidgetKind::PositioningInfo => false,
                 };

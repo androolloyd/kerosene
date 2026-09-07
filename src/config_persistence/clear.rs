@@ -347,6 +347,7 @@ impl TradingTerminal {
         self.wallet_tracker.add_input.clear();
         self.wallet_tracker.add_label_input.clear();
         self.wallet_tracker.tracked_addresses.clear();
+        self.wallet_tracker.compact_selections.clear();
         self.wallet_tracker.muted_addresses.clear();
         self.wallet_tracker.rows.clear();
         self.wallet_tracker.core_refresh_queue.clear();
@@ -986,6 +987,10 @@ mod tests {
     #[test]
     fn clearing_configs_clears_wallet_detail_advanced_history_and_twap_runtime_state() {
         let (mut terminal, _) = TradingTerminal::boot();
+        terminal.wallet_tracker.compact_selections.insert(
+            7,
+            crate::wallet_state::compact::CompactWalletSelection::new(TEST_ACCOUNT.into()),
+        );
         let wallet_detail_window_id = iced::window::Id::unique();
         terminal.wallet_detail_windows.insert(
             wallet_detail_window_id,
@@ -1039,6 +1044,7 @@ mod tests {
         });
 
         assert!(terminal.wallet_detail_windows.is_empty());
+        assert!(terminal.wallet_tracker.compact_selections.is_empty());
         assert!(terminal.advanced_order_history.is_empty());
         assert!(terminal.advanced_order_history_windows.is_empty());
         assert!(terminal.account_twap_reconciliation_generations.is_empty());

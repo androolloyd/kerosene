@@ -2,12 +2,19 @@ use crate::app_state::TradingTerminal;
 use crate::message::Message;
 use iced::Task;
 
+mod compact;
 mod details;
 mod tracker;
 
 impl TradingTerminal {
     pub(crate) fn update_wallet_tracker(&mut self, message: Message) -> Task<Message> {
         match message {
+            message @ (Message::CompactWalletSelected(_, _)
+            | Message::CompactWalletBack(_)
+            | Message::CompactWalletRefresh(_)
+            | Message::CompactWalletDetailsLoaded(_, _, _, _)) => {
+                return self.update_compact_wallet_tracker(message);
+            }
             message @ (Message::OpenWalletDetailsWindow(_)
             | Message::RefreshWalletDetails(_)
             | Message::WalletDetailsLoaded(_, _, _, _)

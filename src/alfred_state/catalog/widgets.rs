@@ -259,6 +259,18 @@ impl TradingTerminal {
             )
             .disabled_if(!can_add_pane, no_pane_reason),
             AlfredCommand::new(
+                AlfredCommandId::AddCompactWalletTrackerPane,
+                "Compact Wallet Tracker",
+                "Tracked wallet values, bias, and positions",
+                "Pane",
+                AlfredCommandKind::AddWidget,
+                Some(Message::BeginWidgetPlacement(
+                    AddWidgetKind::CompactWalletTracker,
+                )),
+                &["wallet", "tracker", "compact", "positions", "widget", "add"],
+            )
+            .disabled_if(!can_add_pane, no_pane_reason),
+            AlfredCommand::new(
                 AlfredCommandId::AddLiveWatchlistPane,
                 "Live Watchlist",
                 "Symbol watchlist pane",

@@ -93,6 +93,9 @@ impl TradingTerminal {
                 self.wallet_tracker.unmute_address(&normalized_address);
                 self.wallet_tracker.rows.remove(&normalized_address);
                 self.wallet_tracker
+                    .compact_selections
+                    .retain(|_, selection| selection.address.as_str() != normalized_address);
+                self.wallet_tracker
                     .core_refresh_queue
                     .retain(|queued| queued != &normalized_address);
                 self.wallet_tracker

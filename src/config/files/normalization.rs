@@ -629,6 +629,7 @@ struct NonChartWidgetIds {
     positioning_infos: BTreeSet<u64>,
     session_data: BTreeSet<u64>,
     x_feeds: BTreeSet<u64>,
+    compact_wallet_trackers: BTreeSet<u64>,
 }
 
 fn repair_duplicate_non_chart_widget_ids(config: &mut KeroseneConfig) {
@@ -694,6 +695,7 @@ fn repair_duplicate_non_chart_widget_ids_for_layout(
         positioning_infos: positioning_info_ids,
         session_data: session_data_ids,
         x_feeds: x_feed_ids,
+        compact_wallet_trackers: BTreeSet::new(),
     };
     if let Some(pane_layout) = pane_layout {
         repaired_any |= repair_duplicate_non_chart_pane_ids(pane_layout, &mut seen, &mut reserved);
@@ -761,6 +763,11 @@ fn repair_duplicate_non_chart_leaf_id(
         PaneKindConfig::SessionData { id } => {
             repair_duplicate_leaf_id(id, &mut seen.session_data, &mut reserved.session_data)
         }
+        PaneKindConfig::CompactWalletTracker { id } => repair_duplicate_leaf_id(
+            id,
+            &mut seen.compact_wallet_trackers,
+            &mut reserved.compact_wallet_trackers,
+        ),
         PaneKindConfig::XFeed { id } => {
             repair_duplicate_leaf_id(id, &mut seen.x_feeds, &mut reserved.x_feeds)
         }
