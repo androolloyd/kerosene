@@ -258,6 +258,27 @@ impl TradingTerminal {
 
         let mut watchlist_changed = false;
         let mut legacy_watchlist_keys = std::collections::HashSet::new();
+        let mut changed_preset_ids = Vec::new();
+        for preset in &mut self.watchlist_presets {
+            let mut preset_changed = false;
+            for symbol in &mut preset.symbols {
+                let Some((canonical, _)) = aliases.get(symbol) else {
+                    continue;
+                };
+                legacy_watchlist_keys.insert(symbol.clone());
+                *symbol = canonical.clone();
+                preset_changed = true;
+                watchlist_changed = true;
+            }
+            if preset_changed {
+                changed_preset_ids.push(preset.id);
+                let mut seen = std::collections::HashSet::new();
+                preset.symbols.retain(|symbol| seen.insert(symbol.clone()));
+            }
+        }
+        for preset_id in changed_preset_ids {
+            self.sync_saved_layout_watchlist_preset_snapshots(preset_id);
+        }
         for watchlist in self.live_watchlists.values_mut() {
             let mut this_watchlist_changed = false;
             for symbol in &mut watchlist.symbols {
@@ -1049,6 +1070,7 @@ mod tests {
             9,
             LiveWatchlistInstance {
                 id: 9,
+                preset_id: None,
                 symbols: vec!["@0".to_string(), "PURR/USDC".to_string()],
                 search_query: String::new(),
                 sort_column: crate::config::LiveWatchlistSortColumn::default(),

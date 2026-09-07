@@ -124,6 +124,34 @@ pub fn default_live_watchlist_columns() -> Vec<LiveWatchlistColumn> {
     LiveWatchlistColumn::ALL.to_vec()
 }
 
+pub type WatchlistPresetId = u64;
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct WatchlistPresetConfig {
+    pub id: WatchlistPresetId,
+    #[serde(default)]
+    pub name: String,
+    #[serde(default)]
+    pub symbols: Vec<String>,
+}
+
+impl WatchlistPresetConfig {
+    pub fn display_name(&self) -> &str {
+        let name = self.name.trim();
+        if name.is_empty() {
+            "Untitled Watchlist"
+        } else {
+            name
+        }
+    }
+}
+
+impl std::fmt::Display for WatchlistPresetConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.display_name())
+    }
+}
+
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq, Default)]
 pub enum SortDirection {
     #[default]
@@ -196,6 +224,10 @@ fn push_unknown_live_watchlist_sort_value_warning(field: &str, value: &str, fall
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct LiveWatchlistConfig {
     pub id: u64,
+    /// Shared named asset list used by this widget. The inline symbols remain
+    /// as a portable fallback for old or imported layouts.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub preset_id: Option<WatchlistPresetId>,
     #[serde(default)]
     pub symbols: Vec<String>,
     #[serde(default)]

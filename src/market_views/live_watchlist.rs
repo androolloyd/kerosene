@@ -41,6 +41,7 @@ impl TradingTerminal {
         let autocomplete = self.view_live_watchlist_autocomplete(id, &wl.search_query);
         let header = self.view_live_watchlist_header(id, wl, &display_columns);
         let top_controls = row![
+            self.view_live_watchlist_preset_picker(id, wl.preset_id),
             search_bar,
             self.view_live_watchlist_settings_button(id, settings_open)
         ]
@@ -75,7 +76,11 @@ impl TradingTerminal {
             let dropdown_layer = float(
                 row![
                     Space::new().width(Fill),
-                    self.view_live_watchlist_settings_dropdown(id, &wl.visible_columns),
+                    self.view_live_watchlist_settings_dropdown(
+                        id,
+                        wl.preset_id,
+                        &wl.visible_columns,
+                    ),
                 ]
                 .width(Fill)
                 .align_y(iced::Alignment::Center),

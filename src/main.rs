@@ -124,6 +124,7 @@ mod wallet_cluster_views;
 mod wallet_state;
 mod wallet_update;
 mod wallet_views;
+mod watchlist_presets;
 mod widget_padding;
 mod window_chrome;
 mod window_update;

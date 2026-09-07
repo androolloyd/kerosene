@@ -126,6 +126,7 @@ impl TradingTerminal {
             journal_window_height: Some(self.journal.height),
 
             live_watchlists: layout_snapshot.live_watchlists,
+            watchlist_presets: self.watchlist_presets.clone(),
             positioning_infos: layout_snapshot.positioning_infos,
             session_data: layout_snapshot.session_data,
             x_feeds: layout_snapshot.x_feeds,

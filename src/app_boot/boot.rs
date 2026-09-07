@@ -18,6 +18,7 @@ impl TradingTerminal {
     }
 
     pub(crate) fn boot_from_config(mut cfg: config::KeroseneConfig) -> (Self, Task<Message>) {
+        config::normalize_watchlist_presets(&mut cfg);
         let config_warnings = config::take_config_warnings();
         let secret_warnings = config::take_secret_warnings();
         let mut persistence_warnings = config_warnings;
@@ -146,11 +147,24 @@ impl TradingTerminal {
             })
             .collect::<Vec<_>>();
         for id in missing_live_watchlist_ids {
+            let preset_id = state.ensure_default_watchlist_preset();
+            let symbols = state
+                .watchlist_preset(preset_id)
+                .map(|preset| {
+                    preset
+                        .symbols
+                        .iter()
+                        .filter(|symbol| !state.symbol_key_is_hidden(symbol))
+                        .cloned()
+                        .collect()
+                })
+                .unwrap_or_default();
             state.live_watchlists.insert(
                 id,
                 crate::market_state::LiveWatchlistInstance {
                     id,
-                    symbols: Vec::new(),
+                    preset_id: Some(preset_id),
+                    symbols,
                     search_query: String::new(),
                     sort_column: Default::default(),
                     sort_direction: Default::default(),

@@ -6,6 +6,7 @@ use super::*;
 fn watchlist() -> LiveWatchlistInstance {
     LiveWatchlistInstance {
         id: 7,
+        preset_id: None,
         symbols: Vec::new(),
         search_query: String::new(),
         sort_column: LiveWatchlistSortColumn::Symbol,

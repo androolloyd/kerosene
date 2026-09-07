@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use super::default_detached_chart_window_height;
 use super::default_detached_chart_window_width;
-use crate::config::default_timeframe;
+use crate::config::{WatchlistPresetId, default_timeframe};
 
 /// Persisted state for a detached comparison chart window.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -34,6 +34,9 @@ pub struct SpaghettiChartConfig {
     /// Symbol keys for the series (e.g. ["BTC", "ETH", "SOL"]).
     #[serde(default)]
     pub symbols: Vec<String>,
+    /// Optional shared watchlist that drives this comparison chart's symbols.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub watchlist_preset_id: Option<WatchlistPresetId>,
     /// Chart timeframe.
     #[serde(default = "default_timeframe")]
     pub timeframe: String,
@@ -63,6 +66,7 @@ impl SpaghettiChartConfig {
         Self {
             id,
             symbols: Vec::new(),
+            watchlist_preset_id: None,
             timeframe: default_timeframe(),
             pair_mode: false,
             pair_candle_mode: false,

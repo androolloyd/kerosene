@@ -2,7 +2,8 @@ use super::super::config_warning_guard;
 use super::{default_config_value, json_string, object_mut, value_from_json, value_from_str};
 use crate::config::{
     KeroseneConfig, LiveWatchlistColumn, LiveWatchlistConfig, LiveWatchlistSortColumn, SavedLayout,
-    SortDirection, default_live_watchlist_columns, take_config_warnings,
+    SortDirection, SpaghettiChartConfig, WatchlistPresetConfig, default_live_watchlist_columns,
+    take_config_warnings,
 };
 
 #[test]
@@ -10,10 +11,21 @@ fn live_watchlists_round_trip() {
     let config = KeroseneConfig {
         live_watchlists: vec![LiveWatchlistConfig {
             id: 42,
+            preset_id: Some(9),
             symbols: vec!["BTC".to_string(), "xyz:NVDA".to_string()],
             sort_column: LiveWatchlistSortColumn::Change24h,
             sort_direction: SortDirection::Descending,
             visible_columns: vec![LiveWatchlistColumn::Price, LiveWatchlistColumn::Funding],
+        }],
+        watchlist_presets: vec![WatchlistPresetConfig {
+            id: 9,
+            name: "US Tech".to_string(),
+            symbols: vec!["BTC".to_string(), "xyz:NVDA".to_string()],
+        }],
+        spaghetti_charts: vec![SpaghettiChartConfig {
+            watchlist_preset_id: Some(9),
+            symbols: vec!["BTC".to_string(), "xyz:NVDA".to_string()],
+            ..SpaghettiChartConfig::empty(7)
         }],
         ..KeroseneConfig::default()
     };
@@ -22,6 +34,8 @@ fn live_watchlists_round_trip() {
     let decoded: KeroseneConfig = value_from_str(&json, "config should deserialize");
 
     assert_eq!(decoded.live_watchlists, config.live_watchlists);
+    assert_eq!(decoded.watchlist_presets, config.watchlist_presets);
+    assert_eq!(decoded.spaghetti_charts, config.spaghetti_charts);
 }
 
 #[test]
@@ -32,6 +46,7 @@ fn live_watchlists_legacy_defaults_are_backwards_compatible() {
     let decoded_missing: KeroseneConfig =
         value_from_json(missing_top_level, "legacy config should deserialize");
     assert!(decoded_missing.live_watchlists.is_empty());
+    assert!(decoded_missing.watchlist_presets.is_empty());
 
     let mut legacy_config = default_config_value();
     object_mut(&mut legacy_config, "config should serialize to object").insert(
@@ -67,6 +82,7 @@ fn live_watchlists_legacy_defaults_are_backwards_compatible() {
         value_from_json(legacy_watchlist, "legacy live watchlist should deserialize");
 
     assert_eq!(decoded_watchlist.id, 7);
+    assert_eq!(decoded_watchlist.preset_id, None);
     assert_eq!(decoded_watchlist.symbols, vec!["BTC".to_string()]);
     assert_eq!(
         decoded_watchlist.sort_column,
@@ -90,6 +106,7 @@ fn live_watchlists_legacy_defaults_are_backwards_compatible() {
         .first()
         .expect("legacy saved layout live watchlist");
     assert_eq!(saved_watchlist.id, 9);
+    assert_eq!(saved_watchlist.preset_id, None);
     assert_eq!(saved_watchlist.symbols, vec!["ETH".to_string()]);
     assert_eq!(saved_watchlist.sort_column, LiveWatchlistSortColumn::Symbol);
     assert_eq!(saved_watchlist.sort_direction, SortDirection::Ascending);

@@ -32,6 +32,7 @@ impl TradingTerminal {
     ) -> config::SpaghettiChartConfig {
         config::SpaghettiChartConfig {
             id: inst.id,
+            watchlist_preset_id: inst.watchlist_preset_id,
             symbols: inst
                 .canvas
                 .series

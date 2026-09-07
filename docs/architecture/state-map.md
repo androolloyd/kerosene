@@ -100,6 +100,8 @@ Representative fields:
 - `all_mids`, `all_mids_updated_at_ms`, live price flashes
 - `order_books: HashMap<OrderBookId, OrderBookInstance>`
 - `live_watchlists: HashMap<LiveWatchlistId, LiveWatchlistInstance>`
+- `watchlist_presets: Vec<config::WatchlistPresetConfig>` shared by live
+  watchlists and comparison charts
 - positioning info and session data instances
 - HYPE ETF and HYPE unstaking queue state
 
@@ -120,6 +122,7 @@ Persisted through:
 - active symbol and symbol search settings
 - `config::OrderBookConfig`
 - `config::LiveWatchlistConfig`
+- `config::WatchlistPresetConfig`
 - `config::PositioningInfoConfig`
 - `config::SessionDataConfig`
 - favourites, muted tickers, market universe, display denomination

@@ -43,6 +43,7 @@ impl TradingTerminal {
             .values()
             .map(|watchlist| config::LiveWatchlistConfig {
                 id: watchlist.id,
+                preset_id: watchlist.preset_id,
                 symbols: watchlist
                     .symbols
                     .iter()

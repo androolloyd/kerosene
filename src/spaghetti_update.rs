@@ -34,6 +34,10 @@ impl TradingTerminal {
             }
             Message::SpaghettiAddSymbol(id, key) => self.add_spaghetti_symbol(id, key),
             Message::SpaghettiRemoveSymbol(id, symbol) => self.remove_spaghetti_symbol(id, symbol),
+            Message::SpaghettiWatchlistPresetSelected(id, preset_id) => {
+                self.select_spaghetti_watchlist_preset(id, preset_id)
+            }
+            Message::SpaghettiClearWatchlistPreset(id) => self.clear_spaghetti_watchlist_preset(id),
             Message::SpaghettiSetSession(id, session) => self.set_spaghetti_session(id, session),
             Message::SpaghettiSetSessionGranularityAuto(id) => {
                 self.set_spaghetti_session_granularity_auto(id)

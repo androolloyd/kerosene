@@ -19,6 +19,7 @@ use zeroize::Zeroize;
 // ---------------------------------------------------------------------------
 
 pub(super) fn normalize_loaded_config(config: &mut KeroseneConfig) {
+    normalize_watchlist_presets(config);
     migrate_read_data_provider(config);
     merge_default_themes(config);
     ensure_layout_ratios(config);
@@ -34,6 +35,140 @@ pub(super) fn normalize_loaded_config(config: &mut KeroseneConfig) {
     apply_pending_keychain_profile_deletions(config);
     ensure_account_profile(config);
     clamp_active_account(config);
+}
+
+pub(crate) fn normalize_watchlist_presets(config: &mut KeroseneConfig) {
+    let mut used_ids = BTreeSet::new();
+    let mut used_names = HashSet::new();
+    let mut next_id = config
+        .watchlist_presets
+        .iter()
+        .map(|preset| preset.id)
+        .max()
+        .unwrap_or(0)
+        .saturating_add(1);
+
+    for (index, preset) in config.watchlist_presets.iter_mut().enumerate() {
+        if !used_ids.insert(preset.id) {
+            while used_ids.contains(&next_id) {
+                next_id = next_id.saturating_add(1);
+            }
+            preset.id = next_id;
+            used_ids.insert(next_id);
+            next_id = next_id.saturating_add(1);
+        }
+        normalize_watchlist_symbols(&mut preset.symbols);
+        preset.name = unique_watchlist_preset_name(
+            &mut used_names,
+            preset.name.trim(),
+            index.saturating_add(1),
+        );
+    }
+
+    bind_legacy_live_watchlists(
+        &mut config.watchlist_presets,
+        &mut used_ids,
+        &mut used_names,
+        &mut next_id,
+        &mut config.live_watchlists,
+    );
+    bind_spaghetti_watchlists(&config.watchlist_presets, &mut config.spaghetti_charts);
+    for layout in &mut config.saved_layouts {
+        bind_legacy_live_watchlists(
+            &mut config.watchlist_presets,
+            &mut used_ids,
+            &mut used_names,
+            &mut next_id,
+            &mut layout.live_watchlists,
+        );
+        bind_spaghetti_watchlists(&config.watchlist_presets, &mut layout.spaghetti_charts);
+    }
+}
+
+fn bind_legacy_live_watchlists(
+    presets: &mut Vec<crate::config::WatchlistPresetConfig>,
+    used_ids: &mut BTreeSet<u64>,
+    used_names: &mut HashSet<String>,
+    next_id: &mut u64,
+    watchlists: &mut [crate::config::LiveWatchlistConfig],
+) {
+    for watchlist in watchlists {
+        normalize_watchlist_symbols(&mut watchlist.symbols);
+        if let Some(preset) = watchlist
+            .preset_id
+            .and_then(|id| presets.iter().find(|preset| preset.id == id))
+        {
+            watchlist.symbols = preset.symbols.clone();
+            continue;
+        }
+
+        let preset_id = presets
+            .iter()
+            .find(|preset| preset.symbols == watchlist.symbols)
+            .map(|preset| preset.id)
+            .unwrap_or_else(|| {
+                while used_ids.contains(next_id) {
+                    *next_id = next_id.saturating_add(1);
+                }
+                let id = *next_id;
+                used_ids.insert(id);
+                *next_id = next_id.saturating_add(1);
+                let ordinal = presets.len().saturating_add(1);
+                presets.push(crate::config::WatchlistPresetConfig {
+                    id,
+                    name: unique_watchlist_preset_name(
+                        used_names,
+                        &format!("Watchlist {ordinal}"),
+                        ordinal,
+                    ),
+                    symbols: watchlist.symbols.clone(),
+                });
+                id
+            });
+        watchlist.preset_id = Some(preset_id);
+    }
+}
+
+fn bind_spaghetti_watchlists(
+    presets: &[crate::config::WatchlistPresetConfig],
+    charts: &mut [crate::config::SpaghettiChartConfig],
+) {
+    for chart in charts {
+        let Some(preset_id) = chart.watchlist_preset_id else {
+            continue;
+        };
+        if chart.pair_mode {
+            chart.watchlist_preset_id = None;
+        } else if let Some(preset) = presets.iter().find(|preset| preset.id == preset_id) {
+            chart.symbols = preset.symbols.clone();
+        } else {
+            chart.watchlist_preset_id = None;
+        }
+    }
+}
+
+fn normalize_watchlist_symbols(symbols: &mut Vec<String>) {
+    let mut seen = HashSet::new();
+    symbols.retain(|symbol| !symbol.trim().is_empty() && seen.insert(symbol.clone()));
+}
+
+fn unique_watchlist_preset_name(
+    used_names: &mut HashSet<String>,
+    preferred: &str,
+    ordinal: usize,
+) -> String {
+    let base = if preferred.is_empty() {
+        format!("Watchlist {ordinal}")
+    } else {
+        preferred.to_string()
+    };
+    let mut candidate = base.clone();
+    let mut suffix = 2;
+    while !used_names.insert(candidate.to_lowercase()) {
+        candidate = format!("{base} {suffix}");
+        suffix += 1;
+    }
+    candidate
 }
 
 pub(crate) fn normalize_imported_saved_layout(layout: &mut SavedLayout) {

@@ -85,6 +85,10 @@ fn is_live_watchlist_market_message(message: &Message) -> bool {
             | Message::LiveWatchlistSearchChanged(_, _)
             | Message::LiveWatchlistAddSymbol(_, _)
             | Message::LiveWatchlistRemoveSymbol(_, _)
+            | Message::LiveWatchlistPresetSelected(_, _)
+            | Message::LiveWatchlistCreatePreset(_)
+            | Message::WatchlistPresetNameChanged(_, _)
+            | Message::WatchlistPresetDelete(_)
             | Message::LiveWatchlistRefreshTick
             | Message::LiveWatchlistContextsLoaded(_, _, _, _)
             | Message::LiveWatchlistHistoryLoaded(_, _, _, _)

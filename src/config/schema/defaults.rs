@@ -363,6 +363,7 @@ impl Default for KeroseneConfig {
             detached_chart_windows: Vec::new(),
             order_books: Vec::new(),
             live_watchlists: Vec::new(),
+            watchlist_presets: Vec::new(),
             positioning_infos: Vec::new(),
             session_data: Vec::new(),
             x_feeds: Vec::new(),

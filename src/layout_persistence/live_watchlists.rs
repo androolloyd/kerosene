@@ -17,6 +17,7 @@ impl TradingTerminal {
                     watchlist_config.id,
                     LiveWatchlistInstance {
                         id: watchlist_config.id,
+                        preset_id: watchlist_config.preset_id,
                         symbols: {
                             let mut seen = std::collections::HashSet::new();
                             watchlist_config
@@ -52,11 +53,24 @@ impl TradingTerminal {
             })
             .collect::<Vec<_>>();
         for id in missing_ids {
+            let preset_id = self.ensure_default_watchlist_preset();
+            let symbols = self
+                .watchlist_preset(preset_id)
+                .map(|preset| {
+                    preset
+                        .symbols
+                        .iter()
+                        .filter(|symbol| !self.symbol_key_is_hidden(symbol))
+                        .cloned()
+                        .collect()
+                })
+                .unwrap_or_default();
             self.live_watchlists.insert(
                 id,
                 LiveWatchlistInstance {
                     id,
-                    symbols: Vec::new(),
+                    preset_id: Some(preset_id),
+                    symbols,
                     search_query: String::new(),
                     sort_column: Default::default(),
                     sort_direction: Default::default(),

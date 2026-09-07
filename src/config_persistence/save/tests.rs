@@ -5,7 +5,7 @@ use super::{
 use crate::app_state::TradingTerminal;
 use crate::config::{
     AccountProfile, AxisConfig, KeroseneConfig, OrderBookConfig, PaneKindConfig, PaneLayoutConfig,
-    SavedLayout, SecretPayload, default_tick_size,
+    SavedLayout, SecretPayload, WatchlistPresetConfig, default_tick_size,
 };
 use crate::helpers::valid_book_tick_size;
 use std::time::{Duration, Instant};
@@ -43,6 +43,20 @@ fn config_save_due_check_waits_until_debounce_deadline() {
         Some(due_at),
         due_at + Duration::from_secs(1)
     ));
+}
+
+#[test]
+fn config_snapshot_persists_named_watchlist_presets() {
+    let mut terminal = TradingTerminal::boot().0;
+    terminal.watchlist_presets = vec![WatchlistPresetConfig {
+        id: 77,
+        name: "Momentum".to_string(),
+        symbols: vec!["BTC".to_string(), "SOL".to_string()],
+    }];
+
+    let snapshot = terminal.config_snapshot();
+
+    assert_eq!(snapshot.watchlist_presets, terminal.watchlist_presets);
 }
 
 #[test]

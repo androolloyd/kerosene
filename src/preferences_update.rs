@@ -399,6 +399,7 @@ impl TradingTerminal {
                     )
                 }));
                 let reconcile_task = self.reconcile_market_universe_state();
+                let watchlist_sync_task = self.sync_all_watchlist_preset_consumers();
                 self.refresh_symbol_search_results();
                 self.refresh_live_watchlist_row_caches();
                 self.persist_config();
@@ -407,6 +408,7 @@ impl TradingTerminal {
                     stop_chase_task,
                     stop_twap_task,
                     reconcile_task,
+                    watchlist_sync_task,
                     self.request_symbol_search_context_refresh(true),
                     self.request_live_watchlist_refresh(true),
                     self.request_screener_data_refresh(true),
@@ -679,6 +681,7 @@ mod tests {
             11,
             LiveWatchlistInstance {
                 id: 11,
+                preset_id: None,
                 symbols: vec!["HYPE".to_string(), "BTC".to_string()],
                 search_query: String::new(),
                 sort_column: Default::default(),

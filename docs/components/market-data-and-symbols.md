@@ -197,12 +197,16 @@ volumes are fetched separately through `api::fetch_outcome_volumes_24h`.
 ## Live Watchlists
 
 `LiveWatchlistInstance` is a multi-instance widget keyed by `LiveWatchlistId`.
-It lets users maintain custom symbol lists with configurable columns and sort
-order.
+Each instance selects a named `WatchlistPresetConfig`, while column visibility
+and sort order remain widget-specific. Presets are global rather than
+layout-local, so several widgets and layouts can reuse the same asset list.
+Creating, renaming, selecting, or deleting a preset is available from the live
+watchlist controls. Adding or removing a symbol edits the selected preset and
+synchronizes every live watchlist and comparison chart linked to it.
 
 State includes:
 
-- symbol list
+- selected preset ID and its synchronized symbol list
 - search/autocomplete text
 - column visibility
 - sort column and direction
@@ -220,8 +224,10 @@ timer or symbol change
   -> view renders rows and flashes
 ```
 
-Live watchlists are persisted as widget configs in saved layouts and current
-config snapshots.
+Named presets are persisted globally in `KeroseneConfig::watchlist_presets`.
+Live-watchlist layout configs store the preset ID plus an inline symbol snapshot
+for compatibility with older and imported layouts. Legacy inline-only lists are
+migrated to named presets when configuration is loaded.
 
 ## Ticker Tape
 

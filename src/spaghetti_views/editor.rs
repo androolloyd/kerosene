@@ -1,3 +1,4 @@
+mod presets;
 mod selected;
 mod symbol_row;
 mod top_bar;
@@ -18,9 +19,17 @@ impl TradingTerminal {
         let theme = self.theme();
         let top_bar = self.view_spaghetti_editor_top_bar(id, inst);
 
-        let current_label = text(format!("{} symbols selected", inst.canvas.series.len()))
-            .size(11)
-            .color(theme.extended_palette().background.weak.text);
+        let link_label = inst
+            .watchlist_preset_id
+            .and_then(|preset_id| self.watchlist_preset_name(preset_id))
+            .map(|name| format!(" · linked to {name}"))
+            .unwrap_or_default();
+        let current_label = text(format!(
+            "{} symbols selected{link_label}",
+            inst.canvas.series.len()
+        ))
+        .size(11)
+        .color(theme.extended_palette().background.weak.text);
         let current_chips = self.view_spaghetti_editor_selected_chips(id, inst);
 
         let query = inst.editor_search_query.to_lowercase();
@@ -71,14 +80,15 @@ impl TradingTerminal {
             col.push(self.view_spaghetti_editor_symbol_row(sid, sym, is_added, &theme))
         });
 
-        let content = column![
-            top_bar,
-            current_label,
-            current_chips,
-            rule::horizontal(1),
-            scrollable(rows),
-        ]
-        .spacing(4);
+        let mut content = column![top_bar].spacing(4);
+        if !inst.pair_mode {
+            content = content.push(self.view_spaghetti_watchlist_preset_controls(id, inst));
+        }
+        content = content
+            .push(current_label)
+            .push(current_chips)
+            .push(rule::horizontal(1))
+            .push(scrollable(rows));
 
         container(content).width(Fill).height(Fill).into()
     }

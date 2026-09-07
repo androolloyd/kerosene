@@ -33,7 +33,7 @@ Related storage:
 | `src/config/secrets/` | Secret payload model, keychain bridge, encrypted secret crypto. |
 | `src/config/themes.rs` | Custom theme config and defaults. |
 | `src/config/hotkeys.rs` | Hotkey wire config. |
-| `src/config/live_watchlist.rs` | Live watchlist columns and sort config. |
+| `src/config/live_watchlist.rs` | Shared named watchlist presets plus widget columns and sort config. |
 | `src/config_persistence/` | Debounced saves, snapshot creation, clear-config flow. |
 | `src/layout_persistence/` | Saved layout application and widget snapshot conversion. |
 | `src/agent_persistence.rs` | Bounded, owner-only Assistant session side-file load and atomic save. |
@@ -143,6 +143,12 @@ workspace:
 - favourites/ticker tape
 - alerts and slippage
 - widget padding
+
+Live-watchlist widget configs and comparison-chart configs can reference a
+global named watchlist preset. The global preset definitions persist across
+layout switches; layouts retain inline symbol snapshots as a portable fallback.
+On load, legacy inline-only live watchlists are assigned named presets, and
+linked comparison charts resolve their series from the preset.
 
 Applying a layout rebuilds runtime instances and queues refresh tasks for
 data-backed widgets. It also replaces the current Canvas set, closes obsolete

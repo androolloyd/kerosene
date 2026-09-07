@@ -1030,3 +1030,57 @@ fn preserves_unknown_future_panes_in_loaded_layouts() {
     assert_eq!(config.pane_layout, Some(future_split.clone()));
     assert_eq!(config.saved_layouts[0].pane_layout, Some(future_split));
 }
+
+#[test]
+fn migrates_inline_watchlists_to_shared_named_presets() {
+    let mut config = KeroseneConfig {
+        live_watchlists: vec![crate::config::LiveWatchlistConfig {
+            id: 1,
+            preset_id: None,
+            symbols: vec!["BTC".to_string(), "ETH".to_string(), "BTC".to_string()],
+            sort_column: Default::default(),
+            sort_direction: Default::default(),
+            visible_columns: crate::config::default_live_watchlist_columns(),
+        }],
+        ..KeroseneConfig::default()
+    };
+    config.saved_layouts.push(
+        serde_json::from_value(serde_json::json!({
+            "name": "Trading",
+            "live_watchlists": [{ "id": 2, "symbols": ["BTC", "ETH"] }]
+        }))
+        .expect("saved layout"),
+    );
+
+    normalize_watchlist_presets(&mut config);
+
+    assert_eq!(config.watchlist_presets.len(), 1);
+    assert_eq!(config.watchlist_presets[0].name, "Watchlist 1");
+    assert_eq!(config.watchlist_presets[0].symbols, ["BTC", "ETH"]);
+    assert_eq!(
+        config.live_watchlists[0].preset_id,
+        config.saved_layouts[0].live_watchlists[0].preset_id
+    );
+}
+
+#[test]
+fn linked_comparison_chart_uses_preset_symbols_during_normalization() {
+    let mut config = KeroseneConfig {
+        watchlist_presets: vec![crate::config::WatchlistPresetConfig {
+            id: 8,
+            name: "Majors".to_string(),
+            symbols: vec!["BTC".to_string(), "ETH".to_string()],
+        }],
+        spaghetti_charts: vec![crate::config::SpaghettiChartConfig {
+            watchlist_preset_id: Some(8),
+            symbols: vec!["SOL".to_string()],
+            ..crate::config::SpaghettiChartConfig::empty(3)
+        }],
+        ..KeroseneConfig::default()
+    };
+
+    normalize_watchlist_presets(&mut config);
+
+    assert_eq!(config.spaghetti_charts[0].symbols, ["BTC", "ETH"]);
+    assert_eq!(config.spaghetti_charts[0].watchlist_preset_id, Some(8));
+}

@@ -99,6 +99,7 @@ fn finite_f32_value(value: f32) -> Option<f32> {
 
 pub(crate) struct SpaghettiChartInstance {
     pub(crate) id: SpaghettiChartId,
+    pub(crate) watchlist_preset_id: Option<crate::config::WatchlistPresetId>,
     pub(crate) canvas: spaghetti::SpaghettiCanvas,
     pub(crate) interval: Timeframe,
     pub(crate) pair_mode: bool,
@@ -115,6 +116,7 @@ impl SpaghettiChartInstance {
     pub(crate) fn new_empty(id: SpaghettiChartId) -> Self {
         Self {
             id,
+            watchlist_preset_id: None,
             canvas: spaghetti::SpaghettiCanvas::new(),
             interval: Timeframe::H1,
             pair_mode: false,
@@ -161,6 +163,7 @@ impl SpaghettiChartInstance {
 
         Self {
             id,
+            watchlist_preset_id: self.watchlist_preset_id,
             canvas,
             interval: self.interval,
             pair_mode: self.pair_mode,

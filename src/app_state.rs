@@ -656,7 +656,8 @@ pub(crate) struct TradingTerminal {
     pub(crate) settings_theme_page: ThemeSettingsPage,
     // Custom Themes
     pub(crate) custom_themes: Vec<config::CustomThemeConfig>,
-    // Trading Journal
+    // Named watchlist presets and multi-instance widgets
+    pub(crate) watchlist_presets: Vec<config::WatchlistPresetConfig>,
     pub(crate) live_watchlists: HashMap<LiveWatchlistId, LiveWatchlistInstance>,
     pub(crate) live_watchlist_settings_menu_open: Option<LiveWatchlistId>,
     pub(crate) positioning_infos: HashMap<PositioningInfoId, PositioningInfoInstance>,

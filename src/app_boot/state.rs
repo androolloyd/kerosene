@@ -91,6 +91,7 @@ impl TradingTerminal {
             app_onboarding_dismissed: cfg.app_onboarding_dismissed,
             layout_input: String::new(),
             preserved_loaded_pane_layout: cfg.pane_layout.clone(),
+            watchlist_presets: cfg.watchlist_presets.clone(),
             live_watchlist_ctxs: HashMap::new(),
             live_watchlist_history: HashMap::new(),
             live_watchlist_contexts_loading: false,

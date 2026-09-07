@@ -56,11 +56,24 @@ impl TradingTerminal {
                 };
 
                 let id = crate::ws::now_ms();
+                let preset_id = self.ensure_default_watchlist_preset();
+                let symbols = self
+                    .watchlist_preset(preset_id)
+                    .map(|preset| {
+                        preset
+                            .symbols
+                            .iter()
+                            .filter(|symbol| !self.symbol_key_is_hidden(symbol))
+                            .cloned()
+                            .collect()
+                    })
+                    .unwrap_or_default();
                 self.live_watchlists.insert(
                     id,
                     LiveWatchlistInstance {
                         id,
-                        symbols: Vec::new(),
+                        preset_id: Some(preset_id),
+                        symbols,
                         search_query: String::new(),
                         sort_column: Default::default(),
                         sort_direction: Default::default(),
@@ -104,6 +117,19 @@ impl TradingTerminal {
                         Some((format!("{symbol} is not a tradable market"), true));
                     return Task::none();
                 }
+                let preset_id = self
+                    .live_watchlists
+                    .get(&id)
+                    .and_then(|watchlist| watchlist.preset_id);
+                if let Some(preset_id) = preset_id {
+                    let is_new = self
+                        .watchlist_preset(preset_id)
+                        .is_some_and(|preset| !preset.symbols.contains(&symbol));
+                    if is_new && let Some(watchlist) = self.live_watchlists.get_mut(&id) {
+                        watchlist.search_query.clear();
+                    }
+                    return self.add_watchlist_preset_symbol(preset_id, symbol);
+                }
                 if let Some(watchlist) = self.live_watchlists.get_mut(&id) {
                     add_watchlist_symbol(watchlist, symbol);
                 }
@@ -112,6 +138,13 @@ impl TradingTerminal {
                 self.request_live_watchlist_refresh(true)
             }
             Message::LiveWatchlistRemoveSymbol(id, symbol) => {
+                let preset_id = self
+                    .live_watchlists
+                    .get(&id)
+                    .and_then(|watchlist| watchlist.preset_id);
+                if let Some(preset_id) = preset_id {
+                    return self.remove_watchlist_preset_symbol(preset_id, &symbol);
+                }
                 if let Some(watchlist) = self.live_watchlists.get_mut(&id) {
                     remove_watchlist_symbol(watchlist, &symbol);
                 }
@@ -119,6 +152,14 @@ impl TradingTerminal {
                 self.persist_config();
                 Task::none()
             }
+            Message::LiveWatchlistPresetSelected(id, preset_id) => {
+                self.select_live_watchlist_preset(id, preset_id)
+            }
+            Message::LiveWatchlistCreatePreset(id) => self.create_live_watchlist_preset(id),
+            Message::WatchlistPresetNameChanged(preset_id, name) => {
+                self.rename_watchlist_preset(preset_id, name)
+            }
+            Message::WatchlistPresetDelete(preset_id) => self.delete_watchlist_preset(preset_id),
             Message::LiveWatchlistRefreshTick => self.request_live_watchlist_refresh(false),
             Message::LiveWatchlistContextsLoaded(
                 request_id,
@@ -315,6 +356,7 @@ mod tests {
             id,
             LiveWatchlistInstance {
                 id,
+                preset_id: None,
                 symbols: symbols.iter().map(|symbol| (*symbol).to_string()).collect(),
                 search_query: String::new(),
                 sort_column: Default::default(),

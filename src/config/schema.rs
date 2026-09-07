@@ -304,6 +304,9 @@ pub struct KeroseneConfig {
     /// Favourite symbol keys (e.g. ["HYPE", "BTC", "@107"]).
     #[serde(default)]
     pub live_watchlists: Vec<LiveWatchlistConfig>,
+    /// Named symbol lists shared by live watchlists and comparison charts.
+    #[serde(default)]
+    pub watchlist_presets: Vec<super::WatchlistPresetConfig>,
     #[serde(default)]
     pub positioning_infos: Vec<PositioningInfoConfig>,
     #[serde(default)]

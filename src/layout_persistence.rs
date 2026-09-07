@@ -22,6 +22,7 @@ pub(crate) use widget_configs::LayoutWidgetConfigs;
 impl TradingTerminal {
     pub(crate) fn apply_layout(&mut self, mut layout: config::SavedLayout) -> Task<Message> {
         config::normalize_imported_saved_layout(&mut layout);
+        self.resolve_layout_watchlist_presets(&mut layout);
         let mut boot_tasks = Vec::new();
         if let Some(editor) = self.quick_trade_editor.take() {
             boot_tasks.push(iced::window::close(editor.window_id));

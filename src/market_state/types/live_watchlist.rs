@@ -21,6 +21,7 @@ pub(crate) struct LiveWatchlistRowData {
 #[derive(Debug, Clone)]
 pub struct LiveWatchlistInstance {
     pub id: LiveWatchlistId,
+    pub preset_id: Option<config::WatchlistPresetId>,
     pub symbols: Vec<String>,
     pub search_query: String,
     pub sort_column: config::LiveWatchlistSortColumn,

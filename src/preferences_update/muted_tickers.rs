@@ -47,6 +47,7 @@ impl TradingTerminal {
                     self.stop_twap_with_reason(id, "TWAP stopped: ticker was muted", false)
                 }));
                 let scrub_task = self.scrub_muted_ticker_state();
+                let watchlist_sync_task = self.sync_all_watchlist_preset_consumers();
                 self.refresh_symbol_search_results();
                 self.refresh_live_watchlist_row_caches();
                 self.persist_config();
@@ -54,6 +55,7 @@ impl TradingTerminal {
                     stop_chase_task,
                     stop_twap_task,
                     scrub_task,
+                    watchlist_sync_task,
                     self.request_symbol_search_context_refresh(true),
                     self.request_live_watchlist_refresh(true),
                 ]);
@@ -70,8 +72,10 @@ impl TradingTerminal {
                     // Unmuting does not scrub hidden state, so explicitly re-resolve
                     // Telegram mentions to bring the ticker's chips back.
                     self.refresh_telegram_ticker_mentions();
+                    let watchlist_sync_task = self.sync_all_watchlist_preset_consumers();
                     self.persist_config();
                     return Task::batch([
+                        watchlist_sync_task,
                         self.request_symbol_search_context_refresh(true),
                         self.request_live_watchlist_refresh(true),
                     ]);

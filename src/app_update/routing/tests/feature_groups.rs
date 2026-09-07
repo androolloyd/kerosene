@@ -25,6 +25,14 @@ fn alfred_screener_settings_and_window_routes_stay_on_feature_modules() {
 
     assert_route(Message::OpenScreenerWindow, UpdateRoute::Screener);
     assert_route(
+        Message::LiveWatchlistPresetSelected(3, 9),
+        UpdateRoute::Market,
+    );
+    assert_route(
+        Message::WatchlistPresetNameChanged(9, "Majors".to_string()),
+        UpdateRoute::Market,
+    );
+    assert_route(
         Message::ScreenerExchangeFilterChanged(
             crate::screener_state::ScreenerExchangeFilter::AllHip3,
         ),
@@ -154,6 +162,14 @@ fn journal_spaghetti_and_wallet_tracker_routes_stay_on_feature_modules() {
     );
 
     assert_route(Message::AddComparisonChart, UpdateRoute::Spaghetti);
+    assert_route(
+        Message::SpaghettiWatchlistPresetSelected(7, 12),
+        UpdateRoute::Spaghetti,
+    );
+    assert_route(
+        Message::SpaghettiClearWatchlistPreset(7),
+        UpdateRoute::Spaghetti,
+    );
     assert_route(Message::ToggleSpaghettiStyleMenu(7), UpdateRoute::Spaghetti);
     assert_route(
         Message::SpaghettiSetColorMode(7, crate::spaghetti::ComparisonColorMode::Single),

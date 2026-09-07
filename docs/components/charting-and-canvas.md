@@ -379,6 +379,7 @@ They support:
 - normalized comparison mode
 - pair-ratio mode
 - multiple selected symbols
+- optional linkage to a named watchlist preset in comparison mode
 - per-symbol candle fetches
 - session anchoring
 - style controls
@@ -395,6 +396,11 @@ Key modules:
 
 Spaghetti data uses the shared candle backfill infrastructure where practical
 but keeps its own chart instance map and canvas cache.
+Selecting a watchlist preset from the comparison editor replaces the chart
+series with that preset's assets and keeps the chart synchronized as the preset
+changes. Symbol edits made while linked update the shared preset; **Unlink**
+returns the chart to an independent symbol list. Pair-ratio charts remain
+independent because they require exactly two symbols.
 
 ## Spread Chart
 

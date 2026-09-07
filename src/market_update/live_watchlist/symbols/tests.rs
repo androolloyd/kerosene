@@ -6,6 +6,7 @@ use super::*;
 fn watchlist() -> LiveWatchlistInstance {
     LiveWatchlistInstance {
         id: 11,
+        preset_id: None,
         symbols: vec!["BTC".to_string(), "ETH".to_string()],
         search_query: "sol".to_string(),
         sort_column: LiveWatchlistSortColumn::Symbol,

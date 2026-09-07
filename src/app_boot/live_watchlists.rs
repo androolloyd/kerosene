@@ -16,8 +16,16 @@ impl TradingTerminal {
                     watchlist_config.id,
                     LiveWatchlistInstance {
                         id: watchlist_config.id,
+                        preset_id: watchlist_config.preset_id,
                         symbols: watchlist_config
-                            .symbols
+                            .preset_id
+                            .and_then(|preset_id| {
+                                cfg.watchlist_presets
+                                    .iter()
+                                    .find(|preset| preset.id == preset_id)
+                                    .map(|preset| preset.symbols.clone())
+                            })
+                            .unwrap_or(watchlist_config.symbols)
                             .into_iter()
                             .filter(|symbol| {
                                 !Self::key_matches_muted_tickers(&[], muted_tickers, symbol)

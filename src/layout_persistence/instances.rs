@@ -174,6 +174,9 @@ impl TradingTerminal {
             let sid = scfg.id;
             let tf = Timeframe::from_config_str(&scfg.timeframe);
             let mut inst = SpaghettiChartInstance::new_empty(sid);
+            inst.watchlist_preset_id = (!scfg.pair_mode)
+                .then_some(scfg.watchlist_preset_id)
+                .flatten();
             inst.interval = tf;
             inst.pair_mode = scfg.pair_mode;
             inst.canvas.pair_ratio_mode = scfg.pair_mode;

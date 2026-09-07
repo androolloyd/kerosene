@@ -5,6 +5,7 @@ use super::*;
 fn watchlist(id: LiveWatchlistId, symbols: &[&str]) -> LiveWatchlistInstance {
     LiveWatchlistInstance {
         id,
+        preset_id: None,
         symbols: symbols.iter().map(|symbol| (*symbol).to_string()).collect(),
         search_query: String::new(),
         sort_column: LiveWatchlistSortColumn::Symbol,

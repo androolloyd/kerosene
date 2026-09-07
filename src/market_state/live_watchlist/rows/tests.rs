@@ -51,6 +51,7 @@ fn outcome_symbol(key: &str) -> ExchangeSymbol {
 fn watchlist(symbols: &[&str]) -> LiveWatchlistInstance {
     LiveWatchlistInstance {
         id: 1,
+        preset_id: None,
         symbols: symbols.iter().map(|symbol| (*symbol).to_string()).collect(),
         search_query: String::new(),
         sort_column: config::LiveWatchlistSortColumn::Symbol,
