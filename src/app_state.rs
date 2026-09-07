@@ -652,6 +652,7 @@ pub(crate) struct TradingTerminal {
     pub(crate) hovered_wallet_address_actions: Option<String>,
     pub(crate) portfolio: PortfolioState,
     pub(crate) income: IncomeState,
+    pub(crate) hyperliquid_proxies: crate::settings_state::HyperliquidProxySettings,
     pub(crate) settings_active_tab: SettingsTab,
     pub(crate) settings_theme_page: ThemeSettingsPage,
     // Custom Themes

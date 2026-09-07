@@ -60,7 +60,7 @@ pub(in crate::account::data::bootstrap) fn account_abstraction_from_best_effort_
 }
 
 pub(in crate::account::data::bootstrap) async fn funding_history_from_response(
-    response: Result<reqwest::Response, reqwest::Error>,
+    response: Result<reqwest::Response, impl std::fmt::Display>,
     completeness: &mut AccountDataCompleteness,
 ) -> Vec<FundingEntry> {
     match response {
@@ -92,7 +92,7 @@ pub(in crate::account::data::bootstrap) async fn funding_history_from_response(
 }
 
 pub(in crate::account::data::bootstrap) async fn fee_rates_from_response(
-    response: Result<reqwest::Response, reqwest::Error>,
+    response: Result<reqwest::Response, impl std::fmt::Display>,
     completeness: &mut AccountDataCompleteness,
 ) -> UserFeeRates {
     match response {

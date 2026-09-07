@@ -3,10 +3,11 @@ use super::super::super::{
     WalletPositionDetail, normalize_dex_asset_position_coins, normalize_dex_open_order_coins,
 };
 use crate::api::API_URL;
+use crate::api::proxy::HyperliquidRequestExt;
 
 use serde_json::Value;
 
-type Hip3ResponseResults = Vec<(String, Result<reqwest::Response, reqwest::Error>)>;
+type Hip3ResponseResults = Vec<(String, Result<reqwest::Response, String>)>;
 
 pub(super) async fn fetch_hip3_wallet_details(
     client: reqwest::Client,
@@ -25,7 +26,7 @@ pub(super) async fn fetch_hip3_wallet_details(
                     "user": address,
                     "dex": dex
                 }))
-                .send(),
+                .send_info(),
         ));
         hip3_order_futs.push((
             dex.clone(),
@@ -36,7 +37,7 @@ pub(super) async fn fetch_hip3_wallet_details(
                     "user": address,
                     "dex": dex
                 }))
-                .send(),
+                .send_info(),
         ));
     }
 

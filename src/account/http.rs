@@ -1,4 +1,5 @@
 use crate::api::API_URL;
+use crate::api::proxy::HyperliquidRequestExt;
 use crate::helpers::sensitive_response_excerpt;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
@@ -21,7 +22,7 @@ pub(super) async fn post_info_json_with_retries(
             tokio::time::sleep(std::time::Duration::from_millis(delay_ms)).await;
         }
 
-        let response = match client.post(API_URL).json(&payload).send().await {
+        let response = match client.post(API_URL).json(&payload).send_info().await {
             Ok(response) => response,
             Err(e) => {
                 last_error = format!("{label} request failed: {e}");
@@ -57,7 +58,7 @@ pub(super) async fn post_info_json_with_retries(
 
 pub(super) async fn best_effort_response_vec<T>(
     label: &'static str,
-    response: Result<reqwest::Response, reqwest::Error>,
+    response: Result<reqwest::Response, impl std::fmt::Display>,
     warnings: &mut Vec<String>,
 ) -> Vec<T>
 where

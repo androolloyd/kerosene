@@ -381,6 +381,8 @@ impl Default for KeroseneConfig {
             schwab_access_token: String::new().into(),
             schwab_refresh_token: String::new().into(),
             openrouter_api_key: String::new().into(),
+            hyperliquid_proxies_enabled: false,
+            hyperliquid_proxy_urls: Vec::new(),
             openrouter_model: String::new(),
             assistant_provider: Default::default(),
             sound_enabled: false,

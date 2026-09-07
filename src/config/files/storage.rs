@@ -577,6 +577,7 @@ fn clear_plaintext_secret_fields(config: &mut KeroseneConfig) {
     config.schwab_access_token.zeroize();
     config.schwab_refresh_token.zeroize();
     config.openrouter_api_key.zeroize();
+    config.hyperliquid_proxy_urls.clear();
 }
 
 fn lock_encrypted_config_secrets_with(

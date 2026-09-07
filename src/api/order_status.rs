@@ -1,3 +1,4 @@
+use crate::api::proxy::HyperliquidRequestExt;
 mod model;
 mod parsing;
 
@@ -42,7 +43,7 @@ async fn fetch_order_status(
         .clone()
         .post(API_URL)
         .json(&body)
-        .send()
+        .send_info()
         .await
         .map_err(|e| format!("orderStatus request failed: {e}"))?;
 

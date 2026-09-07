@@ -1,4 +1,5 @@
 use super::{API_URL, CLIENT};
+use crate::api::proxy::HyperliquidRequestExt;
 use crate::helpers::parse_finite_json_number;
 use serde_json::Value;
 use std::collections::BTreeSet;
@@ -100,7 +101,7 @@ async fn post_info(client: reqwest::Client, body: Value, label: &str) -> Result<
     client
         .post(API_URL)
         .json(&body)
-        .send()
+        .send_info()
         .await
         .map_err(|error| format!("{label} request failed: {error}"))?
         .error_for_status()

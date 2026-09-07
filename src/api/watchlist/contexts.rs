@@ -2,6 +2,7 @@ use super::model::{WatchlistContext, WatchlistContextsResponse};
 use super::parsing::{
     append_perp_contexts_for_symbols, append_spot_contexts_for_symbols, insert_empty_context,
 };
+use crate::api::proxy::HyperliquidRequestExt;
 use crate::api::{API_URL, CLIENT};
 use serde_json::Value;
 use std::collections::{BTreeMap, HashMap, HashSet};
@@ -127,7 +128,7 @@ async fn fetch_context_family(
         let response: Value = client
             .post(API_URL)
             .json(&body)
-            .send()
+            .send_info()
             .await
             .map_err(|e| format!("request failed: {e}"))?
             .error_for_status()

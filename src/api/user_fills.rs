@@ -1,4 +1,5 @@
 use super::{API_URL, CLIENT};
+use crate::api::proxy::HyperliquidRequestExt;
 use crate::app_time::now_ms;
 
 mod model;
@@ -33,7 +34,7 @@ pub async fn fetch_user_fills(
         let resp = client
             .post(API_URL)
             .json(&body)
-            .send()
+            .send_info()
             .await
             .map_err(|e| format!("Failed to fetch user fills: {}", e))?;
 

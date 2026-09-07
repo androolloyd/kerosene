@@ -1,3 +1,5 @@
+mod proxy;
+
 use crate::app_state::TradingTerminal;
 use crate::config;
 use crate::message::Message;
@@ -8,6 +10,12 @@ use zeroize::Zeroize;
 impl TradingTerminal {
     pub(crate) fn update_settings(&mut self, message: Message) -> Task<Message> {
         match message {
+            Message::HyperliquidProxyInputChanged(_)
+            | Message::AddHyperliquidProxy
+            | Message::RemoveHyperliquidProxy(_)
+            | Message::SetHyperliquidProxiesEnabled(_) => {
+                return self.update_hyperliquid_proxies(message);
+            }
             Message::OpenSettingsWindow => {
                 self.add_widget_menu_open = false;
                 self.layout_menu_open = false;

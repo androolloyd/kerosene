@@ -2,6 +2,7 @@ use self::parsing::{parse_reserve_states, parse_spot_token_names};
 use self::snapshot::build_income_snapshot;
 use super::http::{account_analytics_preview, optional_response_value, response_json};
 use super::model::{BorrowLendInterestEntry, BorrowLendUserState, IncomeSnapshot};
+use crate::api::proxy::HyperliquidRequestExt;
 use crate::api::{API_URL, CLIENT};
 use crate::helpers::redact_sensitive_response_text;
 
@@ -28,19 +29,19 @@ async fn fetch_income_data_from_url(
     let reserve_fut = client
         .post(url)
         .json(&serde_json::json!({"type": "allBorrowLendReserveStates"}))
-        .send();
+        .send_info();
     let user_state_fut = client
         .post(url)
         .json(&serde_json::json!({"type": "borrowLendUserState", "user": address}))
-        .send();
+        .send_info();
     let interest_fut = client
         .post(url)
         .json(&serde_json::json!({"type": "userBorrowLendInterest", "user": address}))
-        .send();
+        .send_info();
     let spot_meta_fut = client
         .post(url)
         .json(&serde_json::json!({"type": "spotMeta"}))
-        .send();
+        .send_info();
 
     let (reserve_resp, user_state_resp, interest_resp, spot_meta_resp) =
         futures::future::join4(reserve_fut, user_state_fut, interest_fut, spot_meta_fut).await;

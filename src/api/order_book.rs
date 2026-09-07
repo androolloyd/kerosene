@@ -1,4 +1,5 @@
 use super::{API_URL, CLIENT};
+use crate::api::proxy::HyperliquidRequestExt;
 use crate::helpers::response_snippet;
 use serde::Deserialize;
 use serde_json::Value;
@@ -83,7 +84,7 @@ pub async fn fetch_order_book(
     let response = client
         .post(API_URL)
         .json(&body)
-        .send()
+        .send_info()
         .await
         .map_err(|e| format!("l2Book request failed: {e}"))?;
 

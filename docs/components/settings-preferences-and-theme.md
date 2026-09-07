@@ -10,7 +10,7 @@ filters, secret storage controls, integrations, layouts, and notifications.
 | Component | Key files | Responsibility |
 | --- | --- | --- |
 | Settings state/update | `src/settings_state.rs`, `src/settings_update.rs` | Settings window tab selection and lifecycle. |
-| Settings views | `src/settings_views/` | Themes, layouts, risk, integrations, storage, hotkeys, sidebar. |
+| Settings views | `src/settings_views/` | Themes, layouts, risk, integrations, network, storage, hotkeys, sidebar. |
 | Preferences update | `src/preferences_update.rs`, `src/preferences_update/` | Persist preference changes and synchronize affected runtime systems. |
 | Theme system | `src/app_theme.rs`, `src/app_theme/`, `src/config/themes.rs` | Built-in and custom themes, extended palettes, chart colors. |
 | Fonts | `src/app_fonts.rs`, `src/config/fonts.rs`, `src/preferences_update/fonts.rs` | Bundled fonts, imported fonts, iced font settings. |
@@ -29,11 +29,17 @@ Current settings tabs include:
 - Layouts
 - Risk
 - Integrations
+- Network
 - Storage
 - Hotkeys
 
 View modules are split by tab. The deprecated settings pane remains available
 for compatibility but the window is the primary settings surface.
+
+Settings > Network owns the optional [Hyperliquid proxy pool](../operations/hyperliquid-proxies.md).
+Its enable switch, masked URL input, unlimited removable list, and persistence
+status live in `settings_state::HyperliquidProxySettings`, `settings_update/proxy.rs`,
+and `settings_views/network.rs`.
 
 ## Preferences Update Flow
 

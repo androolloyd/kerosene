@@ -208,3 +208,17 @@ fn journal_spaghetti_and_wallet_tracker_routes_stay_on_feature_modules() {
     );
     assert_route(Message::WalletTrackerRefreshDue, UpdateRoute::WalletTracker);
 }
+
+#[test]
+fn hyperliquid_proxy_settings_route_to_settings() {
+    for message in [
+        Message::HyperliquidProxyInputChanged("http://sentinel:secret@proxy.test".into()),
+        Message::AddHyperliquidProxy,
+        Message::RemoveHyperliquidProxy(2),
+        Message::SetHyperliquidProxiesEnabled(true),
+        Message::SettingsTabSelected(crate::settings_state::SettingsTab::Network),
+    ] {
+        assert!(!format!("{message:?}").contains("sentinel"));
+        assert_route(message, UpdateRoute::Settings);
+    }
+}

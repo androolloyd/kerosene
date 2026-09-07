@@ -157,6 +157,7 @@ pub(super) fn applied_secret_payload_for_legacy_cleanup(
 }
 
 pub(super) fn apply_secret_payload(config: &mut KeroseneConfig, payload: &SecretPayload) {
+    config.hyperliquid_proxy_urls = payload.global.hyperliquid_proxy_urls.clone();
     for profile in &mut config.accounts {
         if profile.secret_id.is_empty() {
             profile.secret_id = new_secret_id();
@@ -201,6 +202,7 @@ pub(super) fn apply_secret_payload_preserving_missing_plaintext(
     config: &mut KeroseneConfig,
     payload: &SecretPayload,
 ) {
+    config.hyperliquid_proxy_urls = payload.global.hyperliquid_proxy_urls.clone();
     for profile in &mut config.accounts {
         if profile.secret_id.is_empty() {
             profile.secret_id = new_secret_id();

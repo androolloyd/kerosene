@@ -1,6 +1,7 @@
 use super::super::super::{AccountDataFetchScope, AssetPosition, ClearinghouseState, HIP3_DEXES};
 use super::snapshot::parse_tracker_number;
 use crate::api::API_URL;
+use crate::api::proxy::HyperliquidRequestExt;
 use crate::helpers::add_optional_f64;
 
 // ---------------------------------------------------------------------------
@@ -24,7 +25,7 @@ pub(super) async fn append_hip3_margin_and_positions(
                     "user": address,
                     "dex": dex
                 }))
-                .send(),
+                .send_info(),
         );
     }
 

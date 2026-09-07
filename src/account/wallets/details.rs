@@ -1,3 +1,4 @@
+use crate::api::proxy::HyperliquidRequestExt;
 mod hip3;
 
 use self::hip3::{append_hip3_open_orders, append_hip3_positions, fetch_hip3_wallet_details};
@@ -40,7 +41,7 @@ pub async fn fetch_wallet_details_scoped(
                 client
                     .post(API_URL)
                     .json(&serde_json::json!({"type": "frontendOpenOrders", "user": address}))
-                    .send()
+                    .send_info()
                     .await,
             )
         } else {
@@ -212,7 +213,7 @@ async fn fetch_wallet_user_fills_if_needed(
     let fills_resp = crate::api::CLIENT
         .post(API_URL)
         .json(&serde_json::json!({"type": "userFills", "user": address}))
-        .send()
+        .send_info()
         .await;
     best_effort_response_vec("userFills", fills_resp, warnings).await
 }

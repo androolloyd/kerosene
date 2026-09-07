@@ -76,6 +76,7 @@ impl TradingTerminal {
             schwab_refresh_token.as_str(),
             openrouter_api_key.as_str(),
         )
+        .with_hyperliquid_proxies(&self.hyperliquid_proxies.urls)
     }
 
     pub(crate) fn persist_profile_agent_key_removal_from_accounts(
@@ -309,7 +310,8 @@ impl TradingTerminal {
                     schwab_access_token,
                     schwab_refresh_token,
                     &self.openrouter_api_key,
-                );
+                )
+                .with_hyperliquid_proxies(&self.hyperliquid_proxies.urls);
                 let persisted = self.persist_encrypted_secret_payload(
                     payload,
                     "Schwab credentials saved to encrypted config",
@@ -349,11 +351,34 @@ impl TradingTerminal {
                     schwab_access_token.as_str(),
                     schwab_refresh_token.as_str(),
                     openrouter_api_key,
-                );
+                )
+                .with_hyperliquid_proxies(&self.hyperliquid_proxies.urls);
                 let persisted = self.persist_encrypted_secret_payload(
                     payload,
                     "OpenRouter key saved to encrypted config",
                 );
+                self.secret_migration_save_blocked = !persisted;
+                persisted
+            }
+        }
+    }
+}
+
+impl TradingTerminal {
+    pub(crate) fn persist_hyperliquid_proxy_secrets(
+        &mut self,
+        urls: &[crate::api::proxy::ProxyUrl],
+    ) -> bool {
+        match self.secret_storage_mode {
+            config::CredentialStorageMode::OsKeychain => self.persist_keychain_secret_update(
+                config::KeychainSecretUpdate::HyperliquidProxies(urls),
+                "Proxies saved to OS keychain",
+                "Proxy save failed; changes were not applied",
+            ),
+            config::CredentialStorageMode::EncryptedConfig => {
+                let payload = self.current_secret_payload().with_hyperliquid_proxies(urls);
+                let persisted = self
+                    .persist_encrypted_secret_payload(payload, "Proxies saved to encrypted config");
                 self.secret_migration_save_blocked = !persisted;
                 persisted
             }

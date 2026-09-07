@@ -1,5 +1,6 @@
 use super::super::super::{AccountDataFetchScope, HIP3_DEXES, OpenOrder};
 use crate::api::API_URL;
+use crate::api::proxy::HyperliquidRequestExt;
 
 pub async fn fetch_wallet_tracker_open_order_count_scoped(
     address: String,
@@ -12,7 +13,7 @@ pub async fn fetch_wallet_tracker_open_order_count_scoped(
             client
                 .post(API_URL)
                 .json(&serde_json::json!({"type": "openOrders", "user": address}))
-                .send(),
+                .send_info(),
         );
     }
 
@@ -25,7 +26,7 @@ pub async fn fetch_wallet_tracker_open_order_count_scoped(
                     "user": address,
                     "dex": dex
                 }))
-                .send(),
+                .send_info(),
         );
     }
 

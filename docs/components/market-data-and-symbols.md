@@ -18,6 +18,10 @@ risk filters, and pure iced views.
 | Market views | `src/market_views/` | Watchlist/symbol search, live watchlists, order books, ticker tape, outcomes, positioning info, HYPE widgets. |
 | Risk filtering | `src/risk_state/` | Muted ticker and market-universe matching used across market/account/order surfaces. |
 
+Official REST reads use `api::proxy::HyperliquidRequestExt::send_info` so the
+optional [proxy pool](../operations/hyperliquid-proxies.md) can distribute each
+request. WebSocket subscriptions retain their existing routing and identity.
+
 ## Symbol Universe
 
 `api::fetch_exchange_symbols` loads the exchange symbol universe. Symbols are

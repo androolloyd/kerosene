@@ -1,5 +1,6 @@
 use super::{API_URL, CLIENT};
 use crate::account::AssetContext;
+use crate::api::proxy::HyperliquidRequestExt;
 use serde_json::Value;
 use std::collections::HashMap;
 
@@ -44,7 +45,7 @@ pub async fn fetch_chart_asset_context(symbol: String) -> Result<Option<AssetCon
         .clone()
         .post(API_URL)
         .json(&body)
-        .send()
+        .send_info()
         .await
         .map_err(|e| format!("metaAndAssetCtxs request failed: {e}"))?
         .error_for_status()
@@ -78,7 +79,7 @@ pub(crate) async fn fetch_spot_chart_asset_contexts(
         .clone()
         .post(API_URL)
         .json(&serde_json::json!({ "type": "spotMetaAndAssetCtxs" }))
-        .send()
+        .send_info()
         .await
         .map_err(|e| format!("spotMetaAndAssetCtxs request failed: {e}"))?;
     if response.status() == reqwest::StatusCode::TOO_MANY_REQUESTS {

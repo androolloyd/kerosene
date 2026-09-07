@@ -34,6 +34,12 @@ impl TradingTerminal {
             ),
             settings_tab_button(
                 self.settings_active_tab,
+                SettingsTab::Network,
+                "Network",
+                "~"
+            ),
+            settings_tab_button(
+                self.settings_active_tab,
                 SettingsTab::Storage,
                 "Storage",
                 "!!"

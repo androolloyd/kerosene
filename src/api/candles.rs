@@ -1,4 +1,5 @@
 use super::{API_URL, CLIENT, KEROSENE_USER_AGENT};
+use crate::api::proxy::HyperliquidRequestExt;
 use crate::config::ChartBackfillSource;
 use crate::timeframe::Timeframe;
 use reqwest::header::{CONTENT_TYPE, USER_AGENT};
@@ -305,7 +306,7 @@ async fn fetch_candles_from_endpoint(
     }
 
     let response = request
-        .send()
+        .send_info()
         .await
         .map_err(|e| format!("Request failed: {e}"))?;
 

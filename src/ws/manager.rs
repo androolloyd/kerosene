@@ -15,6 +15,8 @@ use super::telemetry::{
     telemetry_add_rx, telemetry_add_tx, telemetry_mark_ws_ping_start, telemetry_on_connect,
     telemetry_on_disconnect, telemetry_update_ws_latency_from_ping_start,
 };
+#[cfg(not(test))]
+use crate::api::proxy::HyperliquidRequestExt;
 use futures::{Sink, SinkExt as _};
 use serde_json::Value;
 use std::fmt;
@@ -528,7 +530,7 @@ async fn update_api_latency_once() {
     match client
         .post(crate::api::API_URL)
         .json(&req_payload)
-        .send()
+        .send_info()
         .await
     {
         Ok(resp) if resp.status().is_success() => {

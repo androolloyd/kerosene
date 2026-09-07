@@ -29,6 +29,7 @@ impl TradingTerminal {
             schwab_refresh_token.as_str(),
             &self.openrouter_api_key,
         )
+        .with_hyperliquid_proxies(&self.hyperliquid_proxies.urls)
     }
 
     pub(crate) fn encrypted_password_is_ready(&mut self) -> bool {
@@ -176,6 +177,8 @@ impl TradingTerminal {
     }
 
     pub(crate) fn apply_secret_payload(&mut self, payload: config::SecretPayload) -> usize {
+        self.hyperliquid_proxies.urls = payload.global.hyperliquid_proxy_urls.clone();
+        self.hyperliquid_proxies.apply();
         let mut skipped_bound_profile_keys = 0;
         for profile in &mut self.accounts {
             profile.agent_key.zeroize();

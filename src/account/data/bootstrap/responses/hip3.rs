@@ -11,7 +11,7 @@ use serde_json::Value;
 
 pub(in crate::account::data::bootstrap) async fn hip3_clearinghouse_from_response(
     dex: &str,
-    response: Result<reqwest::Response, reqwest::Error>,
+    response: Result<reqwest::Response, impl std::fmt::Display>,
     completeness: &mut AccountDataCompleteness,
 ) -> Option<ClearinghouseState> {
     match response {
@@ -59,7 +59,7 @@ pub(in crate::account::data::bootstrap) async fn hip3_clearinghouse_from_respons
 
 pub(in crate::account::data::bootstrap) async fn hip3_open_orders_from_response(
     dex: &str,
-    response: Result<reqwest::Response, reqwest::Error>,
+    response: Result<reqwest::Response, impl std::fmt::Display>,
     completeness: &mut AccountDataCompleteness,
 ) -> Option<Vec<OpenOrder>> {
     match response {

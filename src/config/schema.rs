@@ -327,6 +327,12 @@ pub struct KeroseneConfig {
     /// journal entries, and balances on expired HIP-4 markets keep their names.
     #[serde(default)]
     pub outcome_display_labels: HashMap<String, String>,
+    /// Enable the optional proxy pool for official Hyperliquid REST reads.
+    #[serde(default)]
+    pub hyperliquid_proxies_enabled: bool,
+    /// Hydrated exclusively from the credential store, never plaintext config.
+    #[serde(skip)]
+    pub hyperliquid_proxy_urls: Vec<crate::api::proxy::ProxyUrl>,
     /// Hydromancer API key for liquidation and tracked-trade streams.
     #[serde(default)]
     #[serde(skip_serializing)]

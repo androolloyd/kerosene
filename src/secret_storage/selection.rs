@@ -59,6 +59,7 @@ impl TradingTerminal {
                     schwab_access_token,
                     schwab_refresh_token,
                 ) = self.schwab.oauth_credentials_for_secret();
+                let hyperliquid_proxy_urls = self.hyperliquid_proxies.urls.clone();
                 let openrouter_api_key =
                     Zeroizing::new(self.openrouter_api_key.as_str().to_string());
                 self.apply_os_keychain_storage_selection_with(
@@ -81,6 +82,7 @@ impl TradingTerminal {
                             schwab_access_token.as_str(),
                             schwab_refresh_token.as_str(),
                             openrouter_api_key.as_str(),
+                            &hyperliquid_proxy_urls,
                             &[],
                         )
                     },
@@ -491,6 +493,10 @@ fn merge_missing_keychain_payload_secrets(
         }
     }
 
+    if payload.global.hyperliquid_proxy_urls.is_empty() {
+        payload.global.hyperliquid_proxy_urls =
+            keychain_payload.global.hyperliquid_proxy_urls.clone();
+    }
     if payload.global_hydromancer_api_key().trim().is_empty()
         && !keychain_payload
             .global_hydromancer_api_key()
@@ -635,6 +641,29 @@ mod tests {
 
     fn no_legacy_profile_secret(_profile: &mut config::AccountProfile) -> Result<(), String> {
         Ok(())
+    }
+
+    #[test]
+    fn proxy_urls_survive_keychain_to_encrypted_migration() {
+        let urls = vec![crate::api::proxy::ProxyUrl::parse("https://proxy.test").expect("URL")];
+        let mut terminal = terminal_ready_to_switch_to_encrypted();
+        let keychain_payload = config::SecretPayload::default().with_hyperliquid_proxies(&urls);
+        let payload = terminal
+            .encrypted_storage_selection_payload(
+                || Ok(Some(keychain_payload.clone())),
+                no_legacy_global_secret,
+                no_legacy_profile_secret,
+            )
+            .expect("migration payload");
+        assert_eq!(payload.global.hyperliquid_proxy_urls, urls);
+        terminal.hyperliquid_proxies.urls = urls.clone();
+        assert_eq!(
+            terminal
+                .current_secret_payload()
+                .global
+                .hyperliquid_proxy_urls,
+            urls
+        );
     }
 
     #[test]

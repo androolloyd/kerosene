@@ -98,6 +98,8 @@ impl fmt::Debug for ProfileSecretPayload {
 #[derive(Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct GlobalSecretPayload {
     #[serde(default)]
+    pub hyperliquid_proxy_urls: Vec<crate::api::proxy::ProxyUrl>,
+    #[serde(default)]
     pub hydromancer_api_key: Zeroizing<String>,
     #[serde(default)]
     pub hyperdash_api_key: Zeroizing<String>,
@@ -122,6 +124,7 @@ pub struct GlobalSecretPayload {
 impl fmt::Debug for GlobalSecretPayload {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("GlobalSecretPayload")
+            .field("hyperliquid_proxy_urls", &"<redacted>")
             .field("hydromancer_api_key", &"<redacted>")
             .field("hyperdash_api_key", &"<redacted>")
             .field("x_access_token", &"<redacted>")
@@ -250,6 +253,7 @@ impl SecretPayload {
                 })
                 .collect(),
             global: GlobalSecretPayload {
+                hyperliquid_proxy_urls: Vec::new(),
                 hydromancer_api_key: hydromancer_api_key.to_string().into(),
                 hyperdash_api_key: hyperdash_api_key.to_string().into(),
                 x_access_token: x_access_token.to_string().into(),
@@ -264,8 +268,14 @@ impl SecretPayload {
         }
     }
 
+    pub(crate) fn with_hyperliquid_proxies(mut self, urls: &[crate::api::proxy::ProxyUrl]) -> Self {
+        self.global.hyperliquid_proxy_urls = urls.to_vec();
+        self
+    }
+
     pub fn is_empty(&self) -> bool {
         self.profiles.is_empty()
+            && self.global.hyperliquid_proxy_urls.is_empty()
             && self.global.hydromancer_api_key.trim().is_empty()
             && self.global.hyperdash_api_key.trim().is_empty()
             && self.global.x_access_token.trim().is_empty()

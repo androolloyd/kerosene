@@ -443,6 +443,7 @@ impl TradingTerminal {
             hovered_wallet_address_actions: None,
             portfolio: PortfolioState::default(),
             income: IncomeState::default(),
+            hyperliquid_proxies: crate::settings_state::HyperliquidProxySettings::from_config(cfg),
             settings_active_tab: SettingsTab::Themes,
             settings_theme_page: ThemeSettingsPage::Overview,
             custom_themes: cfg.custom_themes.clone(),

@@ -292,6 +292,8 @@ impl TradingTerminal {
                 previous_hydromancer_generation,
             ));
         }
+        self.hyperliquid_proxies = Default::default();
+        self.hyperliquid_proxies.apply();
         self.hydromancer_api_key.zeroize();
         self.hydromancer_key_input.zeroize();
         if hydromancer_key_changed {
@@ -1290,6 +1292,12 @@ mod tests {
         terminal.connected_address = Some(TEST_ACCOUNT.to_string());
         terminal.hydromancer_api_key = sensitive_string("hydro-key");
         terminal.hydromancer_key_input = sensitive_string("hydro-key");
+        terminal.hyperliquid_proxies.enabled = true;
+        terminal
+            .hyperliquid_proxies
+            .urls
+            .push(crate::api::proxy::ProxyUrl::parse("http://proxy.test").expect("URL"));
+        terminal.hyperliquid_proxies.input = sensitive_string("proxy-secret");
         terminal.hyperdash_api_key = sensitive_string("hyperdash-key");
         terminal.hyperdash_key_input = sensitive_string("hyperdash-key");
         terminal.openrouter_api_key = sensitive_string("openrouter-key");
@@ -1320,6 +1328,9 @@ mod tests {
         assert!(terminal.connected_address.is_none());
         assert!(terminal.hydromancer_api_key.is_empty());
         assert!(terminal.hydromancer_key_input.is_empty());
+        assert!(terminal.hyperliquid_proxies.urls.is_empty());
+        assert!(terminal.hyperliquid_proxies.input.is_empty());
+        assert!(!terminal.hyperliquid_proxies.enabled);
         assert!(terminal.hyperdash_api_key.is_empty());
         assert!(terminal.hyperdash_key_input.is_empty());
         assert!(terminal.openrouter_api_key.is_empty());

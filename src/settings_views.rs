@@ -2,6 +2,7 @@ mod deprecated;
 mod hotkeys;
 mod integrations;
 mod layouts;
+mod network;
 mod risk;
 mod sidebar;
 mod storage;
@@ -29,6 +30,7 @@ impl TradingTerminal {
             SettingsTab::Layouts => self.view_settings_layouts_section(),
             SettingsTab::Risk => self.view_settings_risk_section(),
             SettingsTab::Integrations => self.view_settings_integrations_section(),
+            SettingsTab::Network => self.view_settings_network_section(),
             SettingsTab::Storage => self.view_settings_storage_section(),
             SettingsTab::Hotkeys => self.view_settings_hotkeys_section(),
         };

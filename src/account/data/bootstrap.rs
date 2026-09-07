@@ -2,6 +2,7 @@ use super::super::http::{best_effort_response_vec, post_info_json_with_retries};
 use super::super::{AccountData, AccountDataFetchScope, HIP3_DEXES, OpenOrder, UserFill};
 use super::merge::{merge_hip3_open_orders, merge_hip3_positions};
 use crate::api::API_URL;
+use crate::api::proxy::HyperliquidRequestExt;
 use crate::app_time::now_ms;
 use responses::{
     account_abstraction_from_best_effort_value, account_states_from_required_spot,
@@ -82,7 +83,7 @@ pub async fn fetch_account_data_scoped(
                 client
                     .post(API_URL)
                     .json(&frontend_open_orders_payload(&address, None))
-                    .send()
+                    .send_info()
                     .await,
             )
         } else {
@@ -92,7 +93,7 @@ pub async fn fetch_account_data_scoped(
     let fills_fut = client
         .post(API_URL)
         .json(&user_fills_payload(&address))
-        .send();
+        .send_info();
     let funding_fut = client
         .post(API_URL)
         .json(&serde_json::json!({
@@ -100,13 +101,13 @@ pub async fn fetch_account_data_scoped(
             "user": address,
             "startTime": funding_history_start_ms()
         }))
-        .send();
+        .send_info();
 
     // User fee rates (fired in parallel with everything else)
     let fees_fut = client
         .post(API_URL)
         .json(&serde_json::json!({"type": "userFees", "user": address}))
-        .send();
+        .send_info();
 
     // HIP-3 dexes: clearinghouse + orders for each (fired in parallel)
     let hip3_dexes = scope.hip3_dexes(HIP3_DEXES);
@@ -121,13 +122,13 @@ pub async fn fetch_account_data_scoped(
                     "user": address,
                     "dex": dex
                 }))
-                .send(),
+                .send_info(),
         );
         hip3_ord_futs.push(
             client
                 .post(API_URL)
                 .json(&frontend_open_orders_payload(&address, Some(dex)))
-                .send(),
+                .send_info(),
         );
     }
 

@@ -389,6 +389,10 @@ pub(super) fn message_route(message: &Message) -> UpdateRoute {
 
         Message::OpenSettingsWindow
         | Message::OpenIntegrationsSettings
+        | Message::HyperliquidProxyInputChanged(_)
+        | Message::AddHyperliquidProxy
+        | Message::RemoveHyperliquidProxy(_)
+        | Message::SetHyperliquidProxiesEnabled(_)
         | Message::SettingsTabSelected(_)
         | Message::ThemeSettingsPageSelected(_)
         | Message::OpenUnlockCredentialsPopup

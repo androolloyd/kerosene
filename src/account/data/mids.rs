@@ -1,4 +1,5 @@
 use crate::api::API_URL;
+use crate::api::proxy::HyperliquidRequestExt;
 
 use std::collections::HashMap;
 
@@ -12,7 +13,7 @@ pub async fn fetch_all_mids(dex: String) -> Result<HashMap<String, String>, Stri
     let mids: HashMap<String, String> = client
         .post(API_URL)
         .json(&serde_json::json!({"type": "allMids", "dex": dex}))
-        .send()
+        .send_info()
         .await
         .map_err(|e| format!("allMids request failed: {e}"))?
         .json()

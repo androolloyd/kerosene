@@ -364,3 +364,23 @@ fn apply_secret_payload_preserving_plaintext_warning_redacts_account_name() {
             .all(|warning| !warning.contains(sensitive_name))
     );
 }
+
+#[test]
+fn proxy_urls_are_hydrated_from_the_secret_bundle() {
+    let urls = vec![
+        crate::api::proxy::ProxyUrl::parse("https://sentinel:password@proxy.test").expect("URL"),
+    ];
+    let payload = SecretPayload::default().with_hyperliquid_proxies(&urls);
+    let mut config = KeroseneConfig::default();
+    apply_secret_payload(&mut config, &payload);
+    assert_eq!(config.hyperliquid_proxy_urls, urls);
+    assert!(
+        !serde_json::to_string(&config)
+            .expect("config")
+            .contains("sentinel")
+    );
+    apply_secret_payload(&mut config, &SecretPayload::default());
+    assert!(config.hyperliquid_proxy_urls.is_empty());
+    apply_secret_payload_preserving_missing_plaintext(&mut config, &payload);
+    assert_eq!(config.hyperliquid_proxy_urls, urls);
+}

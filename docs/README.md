@@ -60,6 +60,7 @@ separate. The docs below describe where each concern belongs.
 | Guide | Purpose |
 | --- | --- |
 | [Configuration And Persistence](operations/configuration-and-persistence.md) | Config schema, snapshots, saved layouts, credentials references, imported assets, journal cache. |
+| [Hyperliquid Proxies](operations/hyperliquid-proxies.md) | Optional REST proxy routing, failover, settings, and credential storage. |
 | [Security And Secrets](operations/security-and-secrets.md) | Secret-bearing state, OS keychain and encrypted-config flows, signing risks, logging rules. |
 | [Testing, Validation, And Packaging](operations/testing-validation-packaging.md) | Focused tests, full validation, smoke tests, packaging scripts, manual harness scope. |
 | [Development Guide](operations/development-guide.md) | Checklist for adding panes, messages, subscriptions, persisted state, and high-risk trading changes. |

@@ -10,6 +10,7 @@ Secret-bearing values include:
 
 - Hyperliquid agent private keys
 - Hydromancer API key
+- Complete Hyperliquid proxy URLs, including optional username/password
 - HyperDash API key
 - OpenRouter API key
 - X OAuth access token, Client ID, and refresh token
@@ -238,3 +239,12 @@ Use focused tests in:
 
 For any storage or signing change, inspect generated config output and ensure
 secret fields remain empty or encrypted.
+
+## Proxy Credentials
+
+`api::proxy::ProxyUrl` wraps a zeroizing URL with redacted Debug output. Settings
+use `SecretInput` and a masked input; list labels omit usernames and passwords.
+Only the keychain/encrypted `SecretPayload` serializes URLs. Proxy transport
+errors and failure response bodies are replaced with fixed errors or HTTP status
+codes to prevent credential reflection. HTTPS verification remains enabled and
+proxy-client redirects are disabled. See [Hyperliquid Proxies](hyperliquid-proxies.md).

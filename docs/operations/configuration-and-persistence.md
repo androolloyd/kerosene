@@ -242,3 +242,11 @@ Use focused tests in:
 - feature tests for any widget config you change
 
 Run `cargo test config` or a more specific module test for schema changes.
+
+## Hyperliquid Proxy Settings
+
+`hyperliquid_proxies_enabled` defaults to false in old configs. Complete proxy
+URLs are excluded from plaintext config and stored in the credential bundle's
+`global.hyperliquid_proxy_urls` list, which defaults to empty in old bundles.
+Snapshots carry only the enable flag. See [Hyperliquid Proxies](hyperliquid-proxies.md)
+for routing, unlock behavior, storage migration, and validation.

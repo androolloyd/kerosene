@@ -1,4 +1,5 @@
 use super::{API_URL, CLIENT};
+use crate::api::proxy::HyperliquidRequestExt;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::Value;
 use std::fmt;
@@ -175,7 +176,7 @@ async fn post_info_typed<T: DeserializeOwned>(
     let response = client
         .post(API_URL)
         .json(&info_request_payload(request_type))
-        .send()
+        .send_info()
         .await
         .map_err(|e| format!("{request_type} request failed: {e}"))?;
 

@@ -4,6 +4,7 @@ use super::super::super::{
 };
 use super::snapshot::parse_tracker_number;
 use crate::api::API_URL;
+use crate::api::proxy::HyperliquidRequestExt;
 
 use std::collections::HashMap;
 
@@ -101,7 +102,7 @@ async fn fetch_spot_equity_fallback(
     let spot_resp = client
         .post(API_URL)
         .json(&serde_json::json!({"type": "spotClearinghouseState", "user": address}))
-        .send()
+        .send_info()
         .await
         .map_err(|e| format!("spotClearinghouseState request failed: {e}"))?;
 
@@ -135,7 +136,7 @@ pub(super) async fn fetch_spot_fallback_mids(
     let mids_resp = client
         .post(API_URL)
         .json(&serde_json::json!({"type": "allMids", "dex": ""}))
-        .send()
+        .send_info()
         .await
         .map_err(|e| format!("allMids request failed: {e}"))?;
 

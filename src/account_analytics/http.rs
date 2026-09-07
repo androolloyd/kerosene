@@ -1,3 +1,4 @@
+use crate::api::proxy::HyperliquidRequestExt;
 use crate::helpers::sensitive_response_excerpt;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
@@ -20,7 +21,7 @@ where
     let response = client
         .post(url)
         .json(&payload)
-        .send()
+        .send_info()
         .await
         .map_err(|e| format!("{label} request failed: {e}"))?;
 
@@ -58,7 +59,7 @@ pub(super) fn account_analytics_preview(text: &str) -> String {
 }
 
 pub(super) async fn optional_response_value(
-    response: Result<reqwest::Response, reqwest::Error>,
+    response: Result<reqwest::Response, impl std::fmt::Display>,
 ) -> Option<Value> {
     let response = response.ok()?;
     if !response.status().is_success() {

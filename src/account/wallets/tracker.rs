@@ -4,6 +4,7 @@ use super::super::{
     fetch_hydromancer_portfolio_states,
 };
 use crate::api::API_URL;
+use crate::api::proxy::HyperliquidRequestExt;
 
 use serde_json::Value;
 use zeroize::Zeroizing;
@@ -37,7 +38,7 @@ pub async fn fetch_wallet_tracker_snapshot_scoped(
     let response = client
         .post(API_URL)
         .json(&serde_json::json!({"type": "clearinghouseState", "user": address}))
-        .send()
+        .send_info()
         .await
         .map_err(|e| format!("clearinghouseState request failed: {e}"))?;
 

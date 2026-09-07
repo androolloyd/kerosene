@@ -145,6 +145,8 @@ impl TradingTerminal {
             schwab_access_token: String::new().into(),
             schwab_refresh_token: String::new().into(),
             openrouter_api_key: String::new().into(),
+            hyperliquid_proxies_enabled: self.hyperliquid_proxies.enabled,
+            hyperliquid_proxy_urls: Vec::new(),
             openrouter_model: self.openrouter_model.trim().to_string(),
             assistant_provider: self.assistant_provider,
             sound_enabled: layout_snapshot.sound_enabled,

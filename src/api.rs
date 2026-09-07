@@ -8,6 +8,7 @@ mod hype_unstaking_queue;
 mod order_book;
 mod order_status;
 mod outcome_volume;
+pub(crate) mod proxy;
 mod sec;
 mod user_fills;
 mod watchlist;
@@ -53,7 +54,10 @@ use reqwest::{
 };
 use std::sync::LazyLock;
 
-pub static CLIENT: LazyLock<Client> = LazyLock::new(|| {
+pub static CLIENT: LazyLock<Client> =
+    LazyLock::new(|| client_builder().build().unwrap_or_else(|_| Client::new()));
+
+fn client_builder() -> reqwest::ClientBuilder {
     let mut headers = HeaderMap::new();
     if let Ok(user_agent) = HeaderValue::from_str(KEROSENE_USER_AGENT) {
         headers.insert(USER_AGENT, user_agent);
@@ -63,9 +67,7 @@ pub static CLIENT: LazyLock<Client> = LazyLock::new(|| {
         .timeout(std::time::Duration::from_secs(15))
         .connect_timeout(std::time::Duration::from_secs(5))
         .pool_idle_timeout(std::time::Duration::from_secs(60))
-        .build()
-        .unwrap_or_else(|_| Client::new())
-});
+}
 
 pub(crate) const KEROSENE_USER_AGENT: &str = concat!("Kerosene/", env!("CARGO_PKG_VERSION"));
 

@@ -51,6 +51,7 @@ pub(crate) enum KeychainSecretUpdate<'a> {
         refresh_token: &'a str,
     },
     OpenRouter(&'a str),
+    HyperliquidProxies(&'a [crate::api::proxy::ProxyUrl]),
 }
 
 #[cfg(target_os = "windows")]
@@ -305,6 +306,9 @@ fn apply_keychain_secret_update(payload: &mut SecretPayload, update: KeychainSec
             payload.set_global_schwab_access_token(access_token);
             payload.set_global_schwab_refresh_token(refresh_token);
         }
+        KeychainSecretUpdate::HyperliquidProxies(urls) => {
+            payload.global.hyperliquid_proxy_urls = urls.to_vec();
+        }
         KeychainSecretUpdate::OpenRouter(value) => {
             payload.set_global_openrouter_api_key(value);
         }
@@ -313,6 +317,7 @@ fn apply_keychain_secret_update(payload: &mut SecretPayload, update: KeychainSec
 
 fn keychain_update_explicitly_clears(update: KeychainSecretUpdate<'_>) -> bool {
     match update {
+        KeychainSecretUpdate::HyperliquidProxies(urls) => urls.is_empty(),
         KeychainSecretUpdate::Profile(profile) => profile.agent_key.trim().is_empty(),
         KeychainSecretUpdate::RemoveProfile(_) => true,
         KeychainSecretUpdate::Hydromancer(value)
@@ -356,7 +361,8 @@ fn cleanup_legacy_keychain_update(update: KeychainSecretUpdate<'_>) -> Result<()
         KeychainSecretUpdate::Hyperdash(_) => clear_legacy_global_secret_field("hyperdash_api_key"),
         KeychainSecretUpdate::XOAuth { .. }
         | KeychainSecretUpdate::SchwabOAuth { .. }
-        | KeychainSecretUpdate::OpenRouter(_) => Ok(()),
+        | KeychainSecretUpdate::OpenRouter(_)
+        | KeychainSecretUpdate::HyperliquidProxies(_) => Ok(()),
     }
 }
 
@@ -540,6 +546,7 @@ pub fn store_keychain_secrets_with_profile_removals_with_integrations(
     schwab_access_token: &str,
     schwab_refresh_token: &str,
     openrouter_api_key: &str,
+    hyperliquid_proxy_urls: &[crate::api::proxy::ProxyUrl],
     removed_profile_secret_ids: &[String],
 ) -> Result<Option<String>, String> {
     if in_memory_config_mode() {
@@ -558,6 +565,7 @@ pub fn store_keychain_secrets_with_profile_removals_with_integrations(
         schwab_access_token,
         schwab_refresh_token,
         openrouter_api_key,
+        hyperliquid_proxy_urls,
         removed_profile_secret_ids,
         KeychainProfileRemovalStoreHooks {
             load_payload: load_keychain_secret_payload,
@@ -602,6 +610,7 @@ fn store_keychain_secrets_with_profile_removals_with<
     schwab_access_token: &str,
     schwab_refresh_token: &str,
     openrouter_api_key: &str,
+    hyperliquid_proxy_urls: &[crate::api::proxy::ProxyUrl],
     removed_profile_secret_ids: &[String],
     mut hooks: KeychainProfileRemovalStoreHooks<
         LoadPayload,
@@ -630,7 +639,8 @@ where
         schwab_access_token,
         schwab_refresh_token,
         openrouter_api_key,
-    );
+    )
+    .with_hyperliquid_proxies(hyperliquid_proxy_urls);
     let requires_removed_profile_cleanup = removed_profile_secret_ids
         .iter()
         .any(|secret_id| removed_profile_legacy_cleanup_required(secret_id, &payload));
@@ -1081,6 +1091,76 @@ mod tests {
     }
 
     #[test]
+    fn proxy_keychain_updates_preserve_other_secrets_and_remove_only_proxies() {
+        let urls = vec![
+            crate::api::proxy::ProxyUrl::parse("http://sentinel:password@proxy.test").expect("URL"),
+        ];
+        let payload = RefCell::new(Some(SecretPayload::from_credentials(
+            &[test_profile("main")],
+            "hydro",
+            "hyper",
+        )));
+        let cleanup_calls = Cell::new(0);
+        update_keychain_secret_payload_with(
+            KeychainSecretUpdate::HyperliquidProxies(&urls),
+            update_hooks(&payload, &cleanup_calls),
+        )
+        .expect("save proxies");
+        update_keychain_secret_payload_with(
+            KeychainSecretUpdate::OpenRouter("openrouter"),
+            update_hooks(&payload, &cleanup_calls),
+        )
+        .expect("save other key");
+        let stored = payload.borrow().clone().expect("payload");
+        assert_eq!(stored.global.hyperliquid_proxy_urls, urls);
+        assert_eq!(stored.global_hydromancer_api_key(), "hydro");
+        assert_eq!(stored.profile_agent_key("main"), Some("agent-key"));
+        update_keychain_secret_payload_with(
+            KeychainSecretUpdate::HyperliquidProxies(&[]),
+            update_hooks(&payload, &cleanup_calls),
+        )
+        .expect("remove proxies");
+        let stored = payload.borrow().clone().expect("payload");
+        assert!(stored.global.hyperliquid_proxy_urls.is_empty());
+        assert_eq!(stored.global_openrouter_api_key(), "openrouter");
+    }
+
+    #[test]
+    fn proxy_only_bundle_survives_full_keychain_storage_switch() {
+        let urls = vec![crate::api::proxy::ProxyUrl::parse("socks5h://proxy.test").expect("URL")];
+        let stored = RefCell::new(None);
+        store_keychain_secrets_with_profile_removals_with(
+            &[],
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            &urls,
+            &[],
+            KeychainProfileRemovalStoreHooks {
+                load_payload: || Ok(None),
+                store_payload: |payload: &SecretPayload| {
+                    stored.replace(Some(payload.clone()));
+                    Ok(())
+                },
+                clear_payload: || Ok(()),
+                clear_legacy_after_bundle_store: |_: &SecretPayload| Ok(()),
+                clear_removed_profile: |_: &str| Ok(()),
+            },
+        )
+        .expect("store bundle");
+        let payload = stored.into_inner().expect("stored payload");
+        assert!(!payload.is_empty());
+        assert_eq!(payload.global.hyperliquid_proxy_urls, urls);
+    }
+
+    #[test]
     fn scoped_updates_from_every_entry_flow_survive_as_one_complete_bundle() {
         let payload = RefCell::new(None);
         let cleanup_calls = Cell::new(0);
@@ -1403,6 +1483,7 @@ mod tests {
             "",
             "",
             "",
+            &[],
             &[removed_profile.secret_id.clone()],
             KeychainProfileRemovalStoreHooks {
                 load_payload: || Ok(Some(SecretPayload::from_credentials(&[], "", ""))),
@@ -1466,6 +1547,7 @@ mod tests {
             "",
             "",
             "",
+            &[],
             &[removed_profile.secret_id.clone()],
             KeychainProfileRemovalStoreHooks {
                 load_payload: || Ok(Some(previous_payload.clone())),
