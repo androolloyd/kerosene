@@ -8,7 +8,7 @@ use crate::wallet_state::compact::{
 use iced::widget::{
     Column, Row, button, column, container, responsive, row, rule, scrollable, text, tooltip,
 };
-use iced::{Alignment, Color, Element, Fill, Length, Theme};
+use iced::{Alignment, Color, Element, Fill, Length, Theme, gradient};
 
 impl TradingTerminal {
     pub(crate) fn view_compact_wallet_tracker(
@@ -287,7 +287,20 @@ impl TradingTerminal {
                     true,
                     signed_color(upnl, &theme),
                 ));
-            rows = rows.push(container(cells).padding([6, 8]).width(Fill));
+            rows = rows.push(container(cells).padding([6, 8]).width(Fill).style(
+                move |_theme: &Theme| {
+                    container::Style {
+                        background: Some(
+                            gradient::Linear::new(iced::Degrees(90.0))
+                                .add_stop(0.0, Color { a: 0.15, ..color })
+                                .add_stop(0.20, Color::TRANSPARENT)
+                                .add_stop(1.0, Color::TRANSPARENT)
+                                .into(),
+                        ),
+                        ..Default::default()
+                    }
+                },
+            ));
         }
         if no_positions {
             rows = rows
