@@ -71,6 +71,11 @@ impl TradingTerminal {
         } else {
             "border off"
         };
+        let divider_lines = if self.pane_dividers_enabled {
+            "lines on"
+        } else {
+            "lines off"
+        };
         let os_bar = if self.custom_window_chrome_active {
             "OS bar custom"
         } else {
@@ -92,7 +97,7 @@ impl TradingTerminal {
         };
         let series_style = self.chart_series_style.label().to_lowercase();
         let chrome_summary = format!(
-            "{:.0}% scale, {:.0}px divider, {transparency}{window_blur}, {series_style}, {dots}, {gradient}, hollow {hollow}, {lens}, {fringe}, {blur}, {border}, {os_bar}",
+            "{:.0}% scale, {:.0}px divider ({divider_lines}), {transparency}{window_blur}, {series_style}, {dots}, {gradient}, hollow {hollow}, {lens}, {fringe}, {blur}, {border}, {os_bar}",
             self.ui_scale * 100.0,
             self.pane_border_thickness
         );

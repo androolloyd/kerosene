@@ -252,6 +252,9 @@ pub struct KeroseneConfig {
     /// Width of the divider between pane widgets in pixels.
     #[serde(default = "default_pane_border_thickness")]
     pub pane_border_thickness: f32,
+    /// Show pane outlines, title separators, and resize highlight lines without changing gaps.
+    #[serde(default = "default_true")]
+    pub pane_dividers_enabled: bool,
     /// Corner radius applied to pane widgets in pixels.
     #[serde(default = "default_pane_corner_radius")]
     pub pane_corner_radius: f32,

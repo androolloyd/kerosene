@@ -862,6 +862,7 @@ pub(crate) enum Message {
     ImportMonospaceFont,
     MonospaceFontImported(Result<config::CustomFontConfig, String>),
     PaneBorderThicknessChanged(f32),
+    TogglePaneDividers(bool),
     PaneCornerRadiusChanged(f32),
     ToggleOuterWidgetBorder(bool),
     DefaultWidgetPaddingChanged(f32),

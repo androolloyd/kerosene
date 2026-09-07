@@ -398,6 +398,7 @@ impl TradingTerminal {
             .map(|item| (item.target, item.padding_px))
             .collect();
         self.outer_widget_border_enabled = defaults.outer_widget_border_enabled;
+        self.pane_dividers_enabled = defaults.pane_dividers_enabled;
         self.custom_window_chrome_enabled = defaults.custom_window_chrome_enabled;
         self.custom_themes = defaults.custom_themes;
         self.sound_enabled = defaults.sound_enabled;

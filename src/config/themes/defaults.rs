@@ -102,6 +102,13 @@ pub(crate) fn default_custom_themes() -> Vec<CustomThemeConfig> {
             }),
         },
         ThemeSpec {
+            name: "Hyperdash",
+            colors: [
+                "#191613", "#D5D1CD", "#FD4612", "#5CC09B", "#FACC15", "#E23D59",
+            ],
+            chart: Some(ChartThemeSpec::candles("#38A67C", "#BC263E")),
+        },
+        ThemeSpec {
             name: "Hyperliquid",
             colors: [
                 "#0F1A1E", "#F6FEFD", "#50D2C1", "#50D2C1", "#FFB648", "#ED7088",

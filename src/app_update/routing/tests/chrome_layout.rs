@@ -10,6 +10,12 @@ fn chrome_layout_calendar_and_portfolio_routes_cover_shared_shell_messages() {
     assert_route(Message::ToggleHidePnl, UpdateRoute::Chrome);
     assert_route(Message::ConfigSaved(Ok(())), UpdateRoute::Chrome);
     assert_route(Message::EnterApplication, UpdateRoute::Chrome);
+    for enabled in [false, true] {
+        assert_route(
+            Message::TogglePaneDividers(enabled),
+            UpdateRoute::Preferences,
+        );
+    }
     assert_route(
         Message::ToggleWindowTransparency(true),
         UpdateRoute::Preferences,

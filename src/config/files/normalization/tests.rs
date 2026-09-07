@@ -103,6 +103,42 @@ fn adds_cursor_theme_to_existing_config() {
 }
 
 #[test]
+fn adds_hyperdash_to_existing_config_once_and_preserves_customizations() {
+    let mut config = KeroseneConfig {
+        active_theme: "Dark".to_string(),
+        custom_themes: Vec::new(),
+        ..KeroseneConfig::default()
+    };
+
+    normalize_loaded_config(&mut config);
+
+    let hyperdash = config
+        .custom_themes
+        .iter_mut()
+        .find(|theme| theme.name == "Hyperdash")
+        .expect("Hyperdash theme should be added to older configs");
+    assert_eq!(hyperdash.background, "#191613");
+    assert_eq!(hyperdash.chart_bull.as_deref(), Some("#38A67C"));
+    assert_eq!(hyperdash.chart_bear.as_deref(), Some("#BC263E"));
+    hyperdash.primary = "#123456".to_string();
+    hyperdash.chart_bull = Some("#ABCDEF".to_string());
+    let customized = hyperdash.clone();
+
+    let serialized = serde_json::to_string(&config).expect("config serializes");
+    let mut reloaded: KeroseneConfig =
+        serde_json::from_str(&serialized).expect("config deserializes");
+    normalize_loaded_config(&mut reloaded);
+
+    let hyperdash_themes: Vec<_> = reloaded
+        .custom_themes
+        .iter()
+        .filter(|theme| theme.name == "Hyperdash")
+        .collect();
+    assert_eq!(hyperdash_themes, vec![&customized]);
+    assert_eq!(reloaded.active_theme, "Dark");
+}
+
+#[test]
 fn normalizes_out_of_range_market_slippage() {
     let mut value =
         serde_json::to_value(KeroseneConfig::default()).expect("default config serializes");

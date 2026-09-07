@@ -44,6 +44,7 @@ fn widget_chrome_round_trips_and_legacy_defaults_current_values() {
         alfred_popup_scale: 1.35,
         read_data_provider: ReadDataProvider::Hydromancer,
         pane_border_thickness: 8.0,
+        pane_dividers_enabled: false,
         pane_corner_radius: 12.0,
         outer_widget_border_enabled: true,
         widget_padding: WidgetPaddingConfig {
@@ -105,6 +106,7 @@ fn widget_chrome_round_trips_and_legacy_defaults_current_values() {
         ChartBackfillSource::Hyperliquid
     );
     assert_eq!(decoded.pane_border_thickness, 8.0);
+    assert!(!decoded.pane_dividers_enabled);
     assert_eq!(decoded.pane_corner_radius, 12.0);
     assert!(decoded.outer_widget_border_enabled);
     assert_eq!(decoded.widget_padding.default_px, 6.0);
@@ -149,6 +151,7 @@ fn widget_chrome_round_trips_and_legacy_defaults_current_values() {
     object.remove("read_data_provider");
     object.remove("chart_backfill_source");
     object.remove("pane_border_thickness");
+    object.remove("pane_dividers_enabled");
     object.remove("pane_corner_radius");
     object.remove("outer_widget_border_enabled");
     object.remove("widget_padding");
@@ -231,6 +234,8 @@ fn widget_chrome_round_trips_and_legacy_defaults_current_values() {
         default_pane_corner_radius()
     );
     assert!(decoded_legacy.outer_widget_border_enabled);
+    assert!(decoded_legacy.pane_dividers_enabled);
+    assert!(KeroseneConfig::default().pane_dividers_enabled);
     assert_eq!(
         decoded_legacy.widget_padding.default_px,
         default_widget_padding()

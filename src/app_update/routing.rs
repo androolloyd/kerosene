@@ -353,6 +353,7 @@ pub(super) fn message_route(message: &Message) -> UpdateRoute {
         | Message::ImportMonospaceFont
         | Message::MonospaceFontImported(_)
         | Message::PaneBorderThicknessChanged(_)
+        | Message::TogglePaneDividers(_)
         | Message::PaneCornerRadiusChanged(_)
         | Message::ToggleOuterWidgetBorder(_)
         | Message::DefaultWidgetPaddingChanged(_)

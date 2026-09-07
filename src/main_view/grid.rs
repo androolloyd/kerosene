@@ -13,8 +13,9 @@ use components::{
 use iced::widget::{container, pane_grid, row, stack, text};
 use iced::{Element, Fill, Theme};
 use styles::{
-    PANE_BORDER_WIDTH, drag_ghost_title_color, pane_content_style, pane_drag_ghost_style,
-    pane_drag_ghost_title_bar_style, pane_title_bar_style, subtle_pane_title_color,
+    drag_ghost_title_color, pane_content_style, pane_drag_ghost_style,
+    pane_drag_ghost_title_bar_style, pane_grid_style, pane_title_bar_style,
+    subtle_pane_title_color,
 };
 
 // ---------------------------------------------------------------------------
@@ -33,6 +34,7 @@ impl TradingTerminal {
         let chart_count = self.charts.len();
         let pane_count = panes.iter().count();
         let pane_border_thickness = self.pane_border_thickness;
+        let pane_dividers_enabled = self.pane_dividers_enabled;
         let pane_corner_radius = self.pane_corner_radius;
         let placing_widget = (self.add_widget_workspace == workspace)
             .then_some(self.placing_widget)
@@ -129,13 +131,15 @@ impl TradingTerminal {
             } else {
                 title_bar.controls(controls).always_show_controls()
             };
-            let title_bar = title_bar
-                .padding([3, 6])
-                .style(move |theme: &Theme| pane_title_bar_style(theme, pane_corner_radius));
+            let title_bar = title_bar.padding([3, 6]).style(move |theme: &Theme| {
+                pane_title_bar_style(theme, pane_corner_radius, pane_dividers_enabled)
+            });
 
             pane_grid::Content::new(content)
                 .title_bar(title_bar)
-                .style(move |theme: &Theme| pane_content_style(theme, pane_corner_radius))
+                .style(move |theme: &Theme| {
+                    pane_content_style(theme, pane_corner_radius, pane_dividers_enabled)
+                })
         })
         .width(Fill)
         .height(Fill)
@@ -149,25 +153,12 @@ impl TradingTerminal {
             }
         })
         .style(move |theme: &Theme| {
-            let palette = theme.palette();
-            pane_grid::Style {
-                hovered_region: pane_grid::Highlight {
-                    background: palette.primary.into(),
-                    border: iced::Border {
-                        width: PANE_BORDER_WIDTH,
-                        color: palette.primary,
-                        radius: pane_corner_radius.into(),
-                    },
-                },
-                picked_split: pane_grid::Line {
-                    color: palette.primary,
-                    width: pane_border_thickness,
-                },
-                hovered_split: pane_grid::Line {
-                    color: palette.primary,
-                    width: pane_border_thickness,
-                },
-            }
+            pane_grid_style(
+                theme,
+                pane_corner_radius,
+                pane_border_thickness,
+                pane_dividers_enabled,
+            )
         });
         let pane_grid_widget = if placing_widget.is_some() {
             pane_grid_widget

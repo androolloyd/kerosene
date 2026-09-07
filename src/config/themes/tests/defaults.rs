@@ -5,7 +5,7 @@ fn default_theme_is_kerosene() {
     assert_eq!(default_theme(), "Custom: Kerosene");
 }
 
-fn default_theme_expectations() -> [ThemeExpectation<'static>; 14] {
+fn default_theme_expectations() -> [ThemeExpectation<'static>; 15] {
     [
         ThemeExpectation {
             name: "Kerosene",
@@ -41,6 +41,18 @@ fn default_theme_expectations() -> [ThemeExpectation<'static>; 14] {
             danger: "#dddddd",
             chart_bull: None,
             chart_bear: None,
+            chart_line: None,
+        },
+        ThemeExpectation {
+            name: "Hyperdash",
+            background: "#191613",
+            text: "#D5D1CD",
+            primary: "#FD4612",
+            success: "#5CC09B",
+            warning: "#FACC15",
+            danger: "#E23D59",
+            chart_bull: Some("#38A67C"),
+            chart_bear: Some("#BC263E"),
             chart_line: None,
         },
         ThemeExpectation {

@@ -48,6 +48,12 @@ impl TradingTerminal {
                 MIN_PANE_BORDER_THICKNESS..=MAX_PANE_BORDER_THICKNESS,
                 Message::PaneBorderThicknessChanged,
             ),
+            toggle_status_row(
+                &theme,
+                "Divider lines",
+                self.pane_dividers_enabled,
+                Message::TogglePaneDividers,
+            ),
             chrome_slider_row(
                 &theme,
                 "Corners",
@@ -255,6 +261,7 @@ impl TradingTerminal {
                 AppearancePreview {
                     ui_scale: self.ui_scale,
                     pane_border_thickness: self.pane_border_thickness,
+                    pane_dividers_enabled: self.pane_dividers_enabled,
                     pane_corner_radius: self.pane_corner_radius,
                     widget_padding: self.widget_padding_default,
                     outer_widget_border_enabled: self.outer_widget_border_enabled,
@@ -416,6 +423,7 @@ impl TradingTerminal {
 struct AppearancePreview {
     ui_scale: f32,
     pane_border_thickness: f32,
+    pane_dividers_enabled: bool,
     pane_corner_radius: f32,
     widget_padding: f32,
     outer_widget_border_enabled: bool,
@@ -441,7 +449,11 @@ fn appearance_preview(theme: &Theme, preview: AppearancePreview) -> Element<'sta
             summary_chip(
                 theme,
                 "Divider",
-                format!("{:.0}px", preview.pane_border_thickness)
+                if preview.pane_dividers_enabled {
+                    format!("{:.0}px", preview.pane_border_thickness)
+                } else {
+                    format!("{:.0}px · lines off", preview.pane_border_thickness)
+                }
             ),
             summary_chip(
                 theme,
@@ -707,7 +719,11 @@ impl iced::widget::canvas::Program<Message> for AppearancePreview {
         frame.fill_rectangle(
             Point::new(x + left_w, content_y),
             Size::new(divider, content_h),
-            muted,
+            if self.pane_dividers_enabled {
+                muted
+            } else {
+                bg
+            },
         );
 
         let pad = self.widget_padding.clamp(2.0, 20.0);

@@ -29,6 +29,40 @@ fn future_pane_layout() -> PaneLayoutConfig {
 }
 
 #[test]
+fn pane_dividers_toggle_persists_without_changing_layout_geometry() {
+    let (mut terminal, _) = TradingTerminal::boot_from_config(KeroseneConfig {
+        pane_border_thickness: 8.0,
+        pane_corner_radius: 12.0,
+        ..KeroseneConfig::default()
+    });
+    let min_size = terminal.main_window_min_size();
+    let outer_padding = terminal.outer_widget_border_padding();
+
+    let _task = terminal.update_preferences(crate::message::Message::TogglePaneDividers(false));
+
+    assert!(!terminal.pane_dividers_enabled);
+    assert!(terminal.config_save_due_at.is_some());
+    assert_eq!(terminal.main_window_min_size(), min_size);
+    assert_eq!(terminal.outer_widget_border_padding(), outer_padding);
+    assert_eq!(terminal.pane_border_thickness, 8.0);
+    assert_eq!(terminal.pane_corner_radius, 12.0);
+
+    let snapshot = terminal.config_snapshot();
+    assert!(!snapshot.pane_dividers_enabled);
+    let (mut restored, _) = TradingTerminal::boot_from_config(snapshot);
+    assert!(!restored.pane_dividers_enabled);
+
+    restored.config_save_due_at = None;
+    let _task = restored.update_preferences(crate::message::Message::TogglePaneDividers(false));
+    assert!(restored.config_save_due_at.is_none());
+
+    let _task = restored.update_preferences(crate::message::Message::TogglePaneDividers(true));
+    assert!(restored.pane_dividers_enabled);
+    assert!(restored.config_save_due_at.is_some());
+    assert!(restored.config_snapshot().pane_dividers_enabled);
+}
+
+#[test]
 fn config_save_due_check_waits_until_debounce_deadline() {
     let now = Instant::now();
     let due_at = now + CONFIG_SAVE_DEBOUNCE;

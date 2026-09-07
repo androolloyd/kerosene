@@ -288,6 +288,10 @@ impl TradingTerminal {
                 self.pane_corner_radius = normalize_pane_corner_radius(value);
                 self.persist_config();
             }
+            Message::TogglePaneDividers(enabled) if self.pane_dividers_enabled != enabled => {
+                self.pane_dividers_enabled = enabled;
+                self.persist_config();
+            }
             Message::ToggleOuterWidgetBorder(enabled)
                 if self.outer_widget_border_enabled != enabled =>
             {

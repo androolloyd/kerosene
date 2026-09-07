@@ -160,6 +160,7 @@ impl TradingTerminal {
             monospace_font: cfg.monospace_font.clone(),
             custom_fonts: cfg.custom_fonts.clone(),
             pane_border_thickness: cfg.pane_border_thickness,
+            pane_dividers_enabled: cfg.pane_dividers_enabled,
             pane_corner_radius: cfg.pane_corner_radius,
             outer_widget_border_enabled: cfg.outer_widget_border_enabled,
             widget_padding_default: widget_padding.default_px,

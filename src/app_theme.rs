@@ -9,6 +9,7 @@ mod coinbase_dark;
 mod coinbase_light;
 mod color_parse;
 mod ftx;
+mod hyperdash;
 mod hyperliquid;
 mod ibkr_dark;
 mod kraken;
@@ -86,6 +87,8 @@ impl TradingTerminal {
         let bg = palette.background;
         let text = palette.text;
         let name = theme_name.to_string();
+        let use_hyperdash_source_palette =
+            theme_name == "Custom: Hyperdash" && Self::palette_matches_hyperdash_source(palette);
         let use_hyperliquid_source_palette = theme_name == "Custom: Hyperliquid"
             && Self::palette_matches_hyperliquid_source(palette);
         let use_bloomberg_source_palette =
@@ -115,6 +118,11 @@ impl TradingTerminal {
                     Background, Danger, Extended, Primary, Secondary, Success, Warning,
                 };
 
+                if use_hyperdash_source_palette
+                    && TradingTerminal::palette_matches_hyperdash_source(p)
+                {
+                    return TradingTerminal::hyperdash_source_extended_palette();
+                }
                 if use_hyperliquid_source_palette
                     && TradingTerminal::palette_matches_hyperliquid_source(p)
                 {

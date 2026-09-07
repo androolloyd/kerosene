@@ -81,6 +81,10 @@ affordances, drag styling, resize events, and pane click messages. Pane IDs are
 only unique inside their own iced pane grid, so pane interaction messages must
 carry both `WorkspaceId` and `pane_grid::Pane`.
 
+The global Appearance **Divider lines** toggle hides pane outlines, title-bar
+separators, and resize highlight lines through the shared grid styles. It
+applies to the main and Canvas grids without changing gaps or resize hit areas.
+
 `main_view/panes.rs` is the final dispatch point:
 
 ```text

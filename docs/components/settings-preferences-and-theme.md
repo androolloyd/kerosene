@@ -77,6 +77,15 @@ Chart colors are derived from the active theme through
 `app_theme/chart_colors.rs` so bullish/bearish semantics stay consistent across
 charts and market widgets.
 
+Settings > Themes > Custom Themes includes the bundled **Hyperdash** preset,
+inspired by Hyperdash's warm charcoal panels, orange actions, muted warm gray
+labels, and teal/red market colors. Its candle overrides use the reference's
+darker green and crimson. `app_theme/hyperdash.rs` supplies the matching panel,
+hover, and control colors while the preset retains its default base palette;
+editing that palette uses the normal custom-theme color generation instead.
+The existing config normalization adds Hyperdash to older configurations without
+changing the active theme or replacing an existing preset with the same name.
+
 ### Window Transparency and Blur
 
 Appearance settings include an opt-in `Transparency` toggle and a background
@@ -144,6 +153,7 @@ User-adjustable chrome includes:
 
 - UI scale
 - pane border thickness
+- divider line visibility
 - pane corner radius
 - outer widget border
 - default widget padding
@@ -153,6 +163,17 @@ User-adjustable chrome includes:
 
 Changes that affect minimum usable layout dimensions should call
 `sync_main_window_min_size`.
+
+Settings > Themes > Appearance > Interface includes **Divider lines**, enabled
+by default. Turning it off hides widget outlines, title-bar separators, and
+hovered/active resize lines in the main window and Canvas workspaces. The
+**Divider** slider still sets the gap in pixels; resizing, dragging, corner
+radii, padding, and rules inside widgets keep their existing behavior.
+
+`Message::TogglePaneDividers` routes to preferences and persists the global
+`pane_dividers_enabled` config field. Older configs default to visible lines,
+and the Appearance preview updates immediately. Drag-and-drop placement
+highlights remain visible when divider lines are hidden.
 
 ## Hotkeys
 

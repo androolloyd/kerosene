@@ -1,5 +1,9 @@
 use iced::widget::container as container_style;
+use iced::widget::pane_grid;
 use iced::{Color, Theme};
+
+#[cfg(test)]
+mod tests;
 
 pub(super) const PANE_BORDER_WIDTH: f32 = 1.0;
 
@@ -48,7 +52,11 @@ pub(super) fn drag_ghost_title_color(theme: &Theme) -> Color {
     color
 }
 
-pub(super) fn pane_title_bar_style(theme: &Theme, corner_radius: f32) -> container_style::Style {
+pub(super) fn pane_title_bar_style(
+    theme: &Theme,
+    corner_radius: f32,
+    dividers_enabled: bool,
+) -> container_style::Style {
     use iced::gradient;
 
     let background = theme.extended_palette().background.strong.color;
@@ -56,14 +64,16 @@ pub(super) fn pane_title_bar_style(theme: &Theme, corner_radius: f32) -> contain
     separator.a = 0.08;
 
     container_style::Style {
-        background: Some(
+        background: Some(if dividers_enabled {
             gradient::Linear::new(iced::Degrees(180.0))
                 .add_stop(0.00, background)
                 .add_stop(0.97, background)
                 .add_stop(0.985, separator)
                 .add_stop(1.00, separator)
-                .into(),
-        ),
+                .into()
+        } else {
+            background.into()
+        }),
         border: iced::Border {
             radius: iced::border::Radius::default().top(corner_radius),
             ..Default::default()
@@ -72,7 +82,11 @@ pub(super) fn pane_title_bar_style(theme: &Theme, corner_radius: f32) -> contain
     }
 }
 
-pub(super) fn pane_content_style(theme: &Theme, corner_radius: f32) -> container_style::Style {
+pub(super) fn pane_content_style(
+    theme: &Theme,
+    corner_radius: f32,
+    dividers_enabled: bool,
+) -> container_style::Style {
     let mut border_color = theme.extended_palette().background.strong.text;
     border_color.a = 0.10;
 
@@ -80,10 +94,47 @@ pub(super) fn pane_content_style(theme: &Theme, corner_radius: f32) -> container
         background: Some(theme.extended_palette().background.strong.color.into()),
         border: iced::Border {
             width: PANE_BORDER_WIDTH,
-            color: border_color,
+            color: if dividers_enabled {
+                border_color
+            } else {
+                Color::TRANSPARENT
+            },
             radius: corner_radius.into(),
         },
         ..Default::default()
+    }
+}
+
+pub(super) fn pane_grid_style(
+    theme: &Theme,
+    corner_radius: f32,
+    divider_width: f32,
+    dividers_enabled: bool,
+) -> pane_grid::Style {
+    let primary = theme.palette().primary;
+    let split_color = if dividers_enabled {
+        primary
+    } else {
+        Color::TRANSPARENT
+    };
+
+    pane_grid::Style {
+        hovered_region: pane_grid::Highlight {
+            background: primary.into(),
+            border: iced::Border {
+                width: PANE_BORDER_WIDTH,
+                color: primary,
+                radius: corner_radius.into(),
+            },
+        },
+        picked_split: pane_grid::Line {
+            color: split_color,
+            width: divider_width,
+        },
+        hovered_split: pane_grid::Line {
+            color: split_color,
+            width: divider_width,
+        },
     }
 }
 
