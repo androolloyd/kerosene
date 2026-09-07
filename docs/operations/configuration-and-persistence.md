@@ -250,3 +250,17 @@ URLs are excluded from plaintext config and stored in the credential bundle's
 `global.hyperliquid_proxy_urls` list, which defaults to empty in old bundles.
 Snapshots carry only the enable flag. See [Hyperliquid Proxies](hyperliquid-proxies.md)
 for routing, unlock behavior, storage migration, and validation.
+
+## Remote wallet database persistence
+
+`remote_wallet_database: { "url": "http://127.0.0.1:8090" }` saves the read-only
+PocketBase connection. Missing configuration defaults to a disconnected source.
+The URL must be HTTP(S) without embedded credentials, query, or fragment; invalid
+saved URLs disable requests and show a settings error without resetting other
+settings. Clearing configs resets the URL, runtime records, and pending request.
+
+Remote records remain in `wallet_tracker.remote_database`, separate from the
+local address book. Tracker snapshot conversion excludes remote-only addresses,
+labels, and mute choices. Label exports include local metadata only. Local
+wallets that overlap the remote list retain their own saved labels. The next
+startup repopulates remote records from the server; no offline disk cache exists.

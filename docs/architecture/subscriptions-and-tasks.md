@@ -233,3 +233,14 @@ from overwriting newer state.
    reconnect behavior when practical.
 
 Do not start sockets or timers from views.
+
+### Remote wallet labels
+
+The wallet timer module also subscribes to `RemoteWalletDatabaseSync` every 30
+seconds whenever a valid database URL is configured, independent of tracker
+visibility or list size. Startup/save initiate the first `Task::perform` read.
+A runtime pending ID prevents overlapping reads for the active source and rejects
+late `RemoteWalletDatabaseLoaded` results after URL changes or config resets.
+Every successful task returns a full PocketBase snapshot; failures leave the
+previous in-memory records intact. The endpoint is read-only and separate from
+Hyperliquid account/position refreshes.

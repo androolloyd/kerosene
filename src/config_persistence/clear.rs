@@ -344,6 +344,7 @@ impl TradingTerminal {
         self.wallet_detail_windows.clear();
         self.wallet_clusters =
             crate::wallet_cluster_state::WalletClusterState::from_config(&defaults.wallet_clusters);
+        self.wallet_tracker.remote_database = Default::default();
         self.wallet_tracker.add_input.clear();
         self.wallet_tracker.add_label_input.clear();
         self.wallet_tracker.tracked_addresses.clear();

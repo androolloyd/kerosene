@@ -513,7 +513,12 @@ pub(super) fn message_route(message: &Message) -> UpdateRoute {
         | Message::CombinedPortfolioScopeChanged(_)
         | Message::CombinedPortfolioWindowChanged(_) => UpdateRoute::CombinedPortfolio,
 
-        Message::OpenWalletTrackerWindow
+        Message::RemoteWalletDatabaseUrlChanged(_)
+        | Message::SaveRemoteWalletDatabase
+        | Message::DisconnectRemoteWalletDatabase
+        | Message::RemoteWalletDatabaseSync
+        | Message::RemoteWalletDatabaseLoaded(_, _)
+        | Message::OpenWalletTrackerWindow
         | Message::OpenWalletDetailsWindow(_)
         | Message::RefreshWalletDetails(_)
         | Message::CompactWalletSelected(_, _)

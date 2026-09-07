@@ -196,8 +196,18 @@ negative balances. Missing spot state or marks produce a redacted valuation
 warning and retain a usable perp snapshot rather than silently presenting a
 partial spot total as authoritative.
 
-Tracked wallets are persisted, but any private trading keys are not part of
-wallet tracker state.
+Local tracked wallets are persisted, but private trading keys are not part of
+wallet tracker state. The optional remote wallet database is a read-only,
+runtime-only source: only its URL is persisted. `wallet_state/remote_database.rs`
+and `wallet_state/remote_database/api.rs` own the mirror and paginated PocketBase
+client; `wallet_update/remote_database.rs` applies complete snapshots, guards
+request IDs across endpoint changes, and reconciles remote additions/deletions.
+The local address book remains separate; display and tracked-trade subscription
+helpers combine the two sources. Remote metadata cannot be edited in the tracker
+and is excluded from saved config and label exports. The timer in
+`subscription_state/timers/wallet.rs` polls every 30 seconds independently of
+tracker visibility, with an immediate boot/save sync. Failures retain the last
+snapshot only in memory. See the [README database contract](../../README.md#remote-wallet-label-database).
 
 ### Compact Wallet Tracker
 
