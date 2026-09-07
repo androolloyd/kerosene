@@ -113,13 +113,14 @@ echo "=== Building Linux packages ==="
 ./scripts/package.sh all
 
 # ---------------------------------------------------------------------------
-# 3. Build the artifact list (only files that actually exist).
+# 3. Build the artifact list — only files that actually exist AND match the
+#    current version, so stale artifacts from a prior release aren't attached.
 # ---------------------------------------------------------------------------
 ARTIFACTS=()
 for pat in \
-    "$ROOT"/target/debian/*.deb \
-    "$ROOT"/target/rpm/*.rpm \
-    "$ROOT"/target/Kerosene-*.AppImage ; do
+    "$ROOT"/target/debian/*"${NEXT_VERSION}"*.deb \
+    "$ROOT"/target/rpm/*"${NEXT_VERSION}"*.rpm \
+    "$ROOT"/target/Kerosene-"${NEXT_VERSION}"*.AppImage ; do
     if [ -f "$pat" ]; then
         ARTIFACTS+=("$pat")
     fi
