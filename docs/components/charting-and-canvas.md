@@ -187,6 +187,13 @@ Asset context streams supply mark/oracle/mid/open-interest/funding-like metadata
 for chart headers and overlays. `ChartWsAssetCtxUpdate` applies matching
 contexts to chart instances unless the symbol is hidden.
 
+The header's `24h Chg` compares the displayed latest candle close with the
+exchange context's `prevDayPx`: `(last - previous) / previous * 100`. It never
+uses the first loaded candle, whose age varies with timeframe and backfill.
+Missing, expired, nonpositive, or nonfinite reference prices display `-` until
+valid context arrives over the websocket or REST fallback. Invalid current
+prices and nonfinite calculation results also display `-`.
+
 Header metric display modes can show values as raw or USD notional depending on
 the market and user preference.
 

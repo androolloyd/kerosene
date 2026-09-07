@@ -10,7 +10,7 @@ use self::metrics::{
 };
 use crate::app_state::TradingTerminal;
 use crate::chart_state::{ChartId, ChartInstance, ChartSurfaceId};
-use crate::helpers::parse_finite_number;
+use crate::helpers::{parse_positive_finite_number, positive_percent_change};
 use crate::message::Message;
 use iced::widget::{Space, column, responsive, row, text};
 use iced::{Element, Fill, Length};
@@ -41,26 +41,10 @@ impl TradingTerminal {
             return self.view_chart_collapsed_header(chart_id, instance, &theme);
         }
 
-        let (Some(last), Some(first)) = (
-            instance.chart.candles.last(),
-            instance.chart.candles.first(),
-        ) else {
+        let Some(last) = instance.chart.candles.last() else {
             return self.view_chart_placeholder_header(chart_id, instance, &theme);
         };
 
-        let ref_price = chart_reference_price(
-            instance
-                .asset_ctx
-                .as_ref()
-                .and_then(|ctx| ctx.prev_day_px.as_deref()),
-            first.open,
-        );
-        let change = last.close - ref_price;
-        let change_pct = if ref_price != 0.0 {
-            (change / ref_price) * 100.0
-        } else {
-            0.0
-        };
         let now_ms = instance.chart.clock_now_ms();
         let sym_btn = self.view_chart_symbol_button(
             chart_id,
@@ -75,13 +59,15 @@ impl TradingTerminal {
         let mut header_row = row![sym_btn].spacing(16).align_y(iced::Alignment::Center);
 
         if metric_visibility.show_24h_change {
-            let chg_val = text(format!(
-                "{} ({change_pct:+.2}%)",
-                format_signed_usd_change(change)
-            ))
-            .size(12)
-            .font(crate::app_fonts::monospace_font())
-            .color(theme.palette().text);
+            let change_text = chart_24h_change(instance)
+                .map(|(change, change_pct)| {
+                    format!("{} ({change_pct:+.2}%)", format_signed_usd_change(change))
+                })
+                .unwrap_or_else(|| "-".to_string());
+            let chg_val = text(change_text)
+                .size(12)
+                .font(crate::app_fonts::monospace_font())
+                .color(theme.palette().text);
             let col_chg = column![
                 text("24h Chg")
                     .size(9)
@@ -150,10 +136,15 @@ impl TradingTerminal {
     }
 }
 
-fn chart_reference_price(prev_day_px: Option<&str>, fallback: f64) -> f64 {
-    prev_day_px
-        .and_then(parse_finite_number)
-        .unwrap_or(fallback)
+/// Use the displayed last price and the exchange's 24-hour reference. Candle
+/// history covers an arbitrary lookback, so its first open is never a fallback
+/// for a missing (or expired) previous-day price.
+fn chart_24h_change(instance: &ChartInstance) -> Option<(f64, f64)> {
+    let current = instance.chart.candles.last()?.close;
+    let previous =
+        parse_positive_finite_number(instance.asset_ctx.as_ref()?.prev_day_px.as_deref()?)?;
+    let percent = positive_percent_change(Some(current), Some(previous))?;
+    Some((current - previous, percent))
 }
 
 #[cfg(test)]
