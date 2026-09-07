@@ -575,7 +575,7 @@ pub(crate) struct TradingTerminal {
     pub(crate) hide_pnl: bool,
     // Optional full-width favourites ticker tape.
     pub(crate) ticker_tape_enabled: bool,
-    pub(crate) ticker_tape_scroll_px: f32,
+    pub(crate) ticker_tape_scroll_px: f64,
     pub(crate) ticker_tape_ctxs: HashMap<String, crate::api::WatchlistContext>,
     pub(crate) ticker_tape_contexts_loading: bool,
     pub(crate) ticker_tape_contexts_request_id: u64,

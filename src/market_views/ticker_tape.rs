@@ -2,6 +2,7 @@ mod components;
 mod formatting;
 #[cfg(test)]
 mod tests;
+mod track;
 
 use crate::app_state::TradingTerminal;
 use crate::message::Message;
@@ -10,8 +11,9 @@ use components::{
     ticker_tape_section_separator, ticker_tape_separator,
 };
 use formatting::{TickerTapeItem, percent_change, ticker_tape_item_width};
-use iced::widget::{Space, container, float, responsive, row, stack, text};
-use iced::{Element, Fill, Length, Theme, Vector};
+use iced::widget::{container, responsive, row, text};
+use iced::{Element, Fill, Length, Theme};
+use track::TickerTapeTrack;
 
 // ---------------------------------------------------------------------------
 // Ticker Tape
@@ -80,55 +82,34 @@ impl TradingTerminal {
                 .sum();
             let should_scroll = sequence_width > tape_available_width;
             let offset = if should_scroll {
-                self.ticker_tape_scroll_px.rem_euclid(sequence_width)
+                self.ticker_tape_scroll_px
+                    .rem_euclid(f64::from(sequence_width)) as f32
             } else {
                 0.0
             };
             let repetitions = if should_scroll { 2 } else { 1 };
-
-            let mut tape_row = row![]
-                .spacing(0)
-                .height(Length::Fixed(TICKER_TAPE_HEIGHT))
-                .align_y(iced::Alignment::Center);
+            let mut segments = Vec::with_capacity(items.len() * repetitions);
             for _ in 0..repetitions {
                 for (item, item_width) in items.iter().zip(item_widths.iter().copied()) {
-                    tape_row = tape_row
-                        .push(ticker_tape_item(item, &denomination, &theme, item_width))
-                        .push(ticker_tape_separator());
+                    let segment_width = item_width + TICKER_TAPE_SEPARATOR_WIDTH;
+                    let segment = row![
+                        ticker_tape_item(item, &denomination, &theme, item_width),
+                        ticker_tape_separator(),
+                    ]
+                    .spacing(0)
+                    .width(Length::Fixed(segment_width))
+                    .height(Length::Fixed(TICKER_TAPE_HEIGHT))
+                    .align_y(iced::Alignment::Center)
+                    .into();
+                    segments.push((segment, segment_width));
                 }
             }
 
-            let tape_width = sequence_width * repetitions as f32;
-            let tape = container(tape_row)
-                .width(Length::Fixed(tape_width))
-                .center_y(Length::Fixed(TICKER_TAPE_HEIGHT));
-
-            let moving_tape: Element<'_, Message> = if should_scroll {
-                float(tape)
-                    .translate(move |_bounds, _viewport| Vector::new(-offset, 0.0))
-                    .into()
-            } else {
-                tape.into()
-            };
-
-            let layers: Vec<Element<'_, Message>> = vec![
-                Space::new()
-                    .width(Fill)
-                    .height(Length::Fixed(TICKER_TAPE_HEIGHT))
-                    .into(),
-                moving_tape,
-            ];
-
-            container(
-                stack(layers)
-                    .width(Fill)
-                    .height(Length::Fixed(TICKER_TAPE_HEIGHT))
-                    .clip(true),
-            )
-            .width(Fill)
-            .height(Length::Fixed(TICKER_TAPE_HEIGHT))
-            .clip(true)
-            .into()
+            container(TickerTapeTrack::new(segments, offset))
+                .width(Fill)
+                .height(Length::Fixed(TICKER_TAPE_HEIGHT))
+                .clip(true)
+                .into()
         };
 
         let exchange_stats = self.ticker_tape_exchange_stats;

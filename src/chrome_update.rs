@@ -127,8 +127,7 @@ impl TradingTerminal {
                 }
             }
             Message::TickerTapeTick => {
-                self.ticker_tape_scroll_px =
-                    (self.ticker_tape_scroll_px + 1.2).rem_euclid(100_000.0);
+                self.ticker_tape_scroll_px += 1.2;
             }
             Message::StatusBarTick => {
                 return self.handle_status_bar_tick();
@@ -179,5 +178,15 @@ mod tests {
 
         assert!(terminal.app_onboarding_dismissed);
         assert!(terminal.config_save_due_at.is_some());
+    }
+
+    #[test]
+    fn ticker_tape_scroll_does_not_jump_at_the_old_precision_cap() {
+        let (mut terminal, _) = TradingTerminal::boot();
+        terminal.ticker_tape_scroll_px = 99_999.6;
+
+        let _task = terminal.update_chrome(Message::TickerTapeTick);
+
+        assert!((terminal.ticker_tape_scroll_px - 100_000.8).abs() < 1e-9);
     }
 }

@@ -6,6 +6,7 @@ use super::formatting::{
     TickerTapeItem, exchange_stat_usd_label, percent_change, percent_label, price_label,
     ticker_tape_item_width,
 };
+use super::track::ticker_tape_segment_origins;
 use super::{TICKER_TAPE_ITEM_MAX_WIDTH, TICKER_TAPE_ITEM_MIN_WIDTH};
 
 // ---------------------------------------------------------------------------
@@ -137,4 +138,33 @@ fn ticker_tape_item_width_stays_within_layout_bounds() {
         ticker_tape_item_width(&wide_item, &denomination),
         TICKER_TAPE_ITEM_MAX_WIDTH
     );
+}
+
+#[test]
+fn ticker_tape_repeated_sequence_has_no_gap_at_cycle_boundary() {
+    let sequence_widths = [149.0, 173.0, 201.0];
+    let sequence_width = sequence_widths.iter().sum::<f32>();
+    let repeated_widths: Vec<f32> = sequence_widths
+        .iter()
+        .copied()
+        .cycle()
+        .take(sequence_widths.len() * 2)
+        .collect();
+
+    for offset in [0.0, 1.0, sequence_width / 2.0, sequence_width - 0.1] {
+        let origins = ticker_tape_segment_origins(&repeated_widths, offset);
+
+        for index in 1..origins.len() {
+            let previous_end = origins[index - 1] + repeated_widths[index - 1];
+            assert!((origins[index] - previous_end).abs() < f32::EPSILON);
+        }
+
+        assert!((origins[sequence_widths.len()] - (sequence_width - offset)).abs() < f32::EPSILON);
+        assert!(origins[0] <= 0.0);
+        assert!(
+            origins.last().expect("last repeated segment")
+                + repeated_widths.last().expect("last repeated width")
+                >= sequence_width
+        );
+    }
 }
