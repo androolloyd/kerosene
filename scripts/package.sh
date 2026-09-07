@@ -199,10 +199,24 @@ install -Dm0644 "$ROOT/packaging/pi/LICENSE" "%{buildroot}/usr/share/licenses/ke
 EOF
 
     info "Packaging .rpm..."
-    rpmbuild \
-        --define "_topdir $RPM_TOPDIR" \
-        --define "_build_id_links none" \
-        -bb "$RPM_SPEC"
+    # A normal host has rpm installed with its config at /usr/lib/rpm.
+    # In a container without it (e.g. this CI box with no working sudo), a
+    # user-space rpm tree can be supplied and pointed at via RPM_CONFIGDIR.
+    # Set RPM_CONFIGDIR=<dir containing rpmrc+macros> for that case.
+    if [ -n "${RPM_CONFIGDIR:-}" ]; then
+        rpmbuild \
+            --buildroot="$RPM_TOPDIR/BUILDROOT" \
+            --define "_topdir $RPM_TOPDIR" \
+            --define "_dbpath $RPM_TOPDIR/rpmdb" \
+            --define "_tmppath $RPM_TOPDIR/tmp" \
+            --define "_build_id_links none" \
+            -bb "$RPM_SPEC"
+    else
+        rpmbuild \
+            --define "_topdir $RPM_TOPDIR" \
+            --define "_build_id_links none" \
+            -bb "$RPM_SPEC"
+    fi
 
     RPM=$(find "$RPM_TOPDIR/RPMS" -type f -name "*.rpm" -printf "%T@ %p\n" \
         | sort -nr \
@@ -281,7 +295,9 @@ APPRUN
     # Remove previous AppImage to avoid "Text file busy" if it's still mapped
     rm -f "$OUTPUT"
     info "Running appimagetool..."
-    ARCH="$ARCH" "$APPIMAGETOOL" --no-appstream "$APPDIR" "$OUTPUT" 2>&1 | tail -3
+    # APPIMAGE_EXTRACT_AND_RUN bypasses the FUSE self-mount which can be
+    # unavailable in a container; extract-and-run works everywhere.
+    ARCH="$ARCH" APPIMAGE_EXTRACT_AND_RUN=1 "$APPIMAGETOOL" --no-appstream "$APPDIR" "$OUTPUT" 2>&1 | tail -3
 
     if [ -f "$OUTPUT" ]; then
         chmod +x "$OUTPUT"
