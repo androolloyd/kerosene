@@ -11,6 +11,7 @@ mod detached;
 mod earnings;
 mod editor;
 mod macro_indicators;
+mod price_change;
 mod quick_trade;
 
 /// How often a chart whose `asset_ctx` is REST-sourced re-fetches it. Kept
@@ -76,6 +77,9 @@ impl TradingTerminal {
 
     pub(crate) fn update_chart(&mut self, message: Message) -> Task<Message> {
         match message {
+            Message::ChartPriceChangeHistoryLoaded(request, result) => {
+                self.apply_chart_price_change_history(request, result, Self::now_ms());
+            }
             message @ (Message::OpenQuickTradeEditor(_)
             | Message::QuickTradeActionAdded
             | Message::QuickTradeActionSideToggled(_)

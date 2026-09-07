@@ -187,12 +187,31 @@ Asset context streams supply mark/oracle/mid/open-interest/funding-like metadata
 for chart headers and overlays. `ChartWsAssetCtxUpdate` applies matching
 contexts to chart instances unless the symbol is hidden.
 
-The header's `24h Chg` compares the displayed latest candle close with the
-exchange context's `prevDayPx`: `(last - previous) / previous * 100`. It never
-uses the first loaded candle, whose age varies with timeframe and backfill.
-Missing, expired, nonpositive, or nonfinite reference prices display `-` until
-valid context arrives over the websocket or REST fallback. Invalid current
-prices and nonfinite calculation results also display `-`.
+The header's `24h Chg` compares the displayed latest candle close with a
+24-hour reference: `(last - previous) / previous * 100`. It prefers the
+exchange context's valid `prevDayPx`, including context already available in
+another chart of the same symbol. When metadata is missing or expires, it can
+derive the reference from completed minute-level candles at or before
+`chart.clock_now_ms() - 24 hours`. It never uses the first loaded candle,
+interpolates an hourly/daily candle, or reads the close of a candle that extends
+past the cutoff. A reference must be less than one minute before the cutoff.
+The candle-derived value is marked `≈`, with its exact reference timestamp in
+the tooltip. Missing coverage, invalid prices, and nonfinite calculations
+continue to display `-`.
+
+`chart_state/price_change.rs` owns the calculation and shared history in
+`TradingTerminal::chart_price_change_history`. Verified 1-second/1-minute
+history already loaded in a chart can supply every chart of that symbol,
+regardless of timeframe. Otherwise, the status tick calls
+`queue_chart_price_change_history` in `chart_update/price_change.rs` to request
+a small 1-minute candle slice around yesterday's cutoff through the existing
+chart data provider. The slice includes the following hour of historical
+prices, so the rolling reference advances locally; a refresh is queued five
+minutes before coverage runs out. One request serves all charts for a symbol.
+`ChartPriceChangeHistoryLoaded` applies normalized results only to the matching
+pending request and provider/key generation. Failed or incomplete requests
+preserve usable history and back off for one to five minutes. History is
+removed when the symbol no longer has an open, unhidden chart.
 
 Header metric display modes can show values as raw or USD notional depending on
 the market and user preference.

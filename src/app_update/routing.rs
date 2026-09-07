@@ -576,6 +576,7 @@ pub(super) fn message_route(message: &Message) -> UpdateRoute {
         | Message::MacroCandlesLoaded(_, _, _, _, _)
         | Message::ChartCachedCandlesLoaded(_, _, _)
         | Message::ChartCandlesLoaded(_, _)
+        | Message::ChartPriceChangeHistoryLoaded(_, _)
         | Message::ChartSecondaryCandlesLoaded(_, _)
         | Message::ChartFundingHistoryLoaded(_, _)
         | Message::ChartWsCandleUpdate(_, _, _, _, _)

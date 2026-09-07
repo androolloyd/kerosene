@@ -70,6 +70,22 @@ fn market_chart_feed_and_export_routes_stay_on_their_feature_modules() {
         UpdateRoute::Chart,
     );
     assert_route(
+        Message::ChartPriceChangeHistoryLoaded(
+            crate::chart_state::PriceChangeHistoryRequest {
+                symbol: "BTC".to_string(),
+                context: crate::chart_state::ChartBackfillRequestContext::new(
+                    crate::config::ChartBackfillSource::Hyperliquid,
+                    0,
+                    0,
+                ),
+                start_ms: 0,
+                end_ms: 60_000,
+            },
+            Ok(Vec::new()),
+        ),
+        UpdateRoute::Chart,
+    );
+    assert_route(
         Message::OpenChartEarningsFiling(7, crate::chart_state::ChartSurfaceId::Docked(7), 2_000),
         UpdateRoute::Chart,
     );

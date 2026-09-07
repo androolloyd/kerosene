@@ -4,6 +4,7 @@ mod funding;
 mod heatmap;
 mod model;
 mod overlays;
+mod price_change;
 mod quick_trade;
 mod spaghetti_fetch;
 
@@ -13,5 +14,10 @@ pub(crate) use self::model::{
     ChartBackfillFetchContext, ChartBackfillRequestContext, ChartId, ChartInstance, ChartSurfaceId,
     DetachedChartWindowState, FundingFetchMode, FundingFetchRequest, PriceFlash,
     PriceFlashDirection,
+};
+pub(crate) use self::price_change::{
+    ChartPriceChangeHistory, PRICE_CHANGE_DAY_MS, PRICE_CHANGE_HISTORY_AHEAD_MS,
+    PRICE_CHANGE_MINUTE_MS, PRICE_CHANGE_PREFETCH_MS, PriceChangeHistoryEntry,
+    PriceChangeHistoryRequest, candle_price_change_reference,
 };
 pub(crate) use self::quick_trade::{QuickTradeActionDraft, QuickTradeEditorState};

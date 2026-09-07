@@ -14,6 +14,7 @@ use crate::chart_indicator::ChartIndicatorId;
 use crate::chart_screenshot::ChartScreenshotState;
 use crate::chart_state::{
     CandleCacheTarget, CandleFetchRequest, ChartId, ChartSurfaceId, FundingFetchRequest,
+    PriceChangeHistoryRequest,
 };
 use crate::config;
 use crate::hydromancer_api::FundingRatePoint;
@@ -1381,6 +1382,7 @@ pub(crate) enum Message {
         Result<Option<Vec<Candle>>, String>,
     ),
     ChartCandlesLoaded(CandleFetchRequest, Result<Vec<Candle>, String>),
+    ChartPriceChangeHistoryLoaded(PriceChangeHistoryRequest, Result<Vec<Candle>, String>),
     ChartSecondaryCandlesLoaded(CandleFetchRequest, Result<Vec<Candle>, String>),
     ChartFundingHistoryLoaded(
         FundingFetchRequest,

@@ -10,9 +10,8 @@ use self::metrics::{
 };
 use crate::app_state::TradingTerminal;
 use crate::chart_state::{ChartId, ChartInstance, ChartSurfaceId};
-use crate::helpers::{parse_positive_finite_number, positive_percent_change};
 use crate::message::Message;
-use iced::widget::{Space, column, responsive, row, text};
+use iced::widget::{Space, column, responsive, row, text, tooltip};
 use iced::{Element, Fill, Length};
 
 impl TradingTerminal {
@@ -59,11 +58,36 @@ impl TradingTerminal {
         let mut header_row = row![sym_btn].spacing(16).align_y(iced::Alignment::Center);
 
         if metric_visibility.show_24h_change {
-            let change_text = chart_24h_change(instance)
-                .map(|(change, change_pct)| {
-                    format!("{} ({change_pct:+.2}%)", format_signed_usd_change(change))
+            let change = self.chart_24h_change(instance, now_ms);
+            let change_text = change
+                .as_ref()
+                .map(|change| {
+                    let prefix = if change.reference_time_ms.is_some() {
+                        "≈ "
+                    } else {
+                        ""
+                    };
+                    format!(
+                        "{prefix}{} ({:+.2}%)",
+                        format_signed_usd_change(change.absolute),
+                        change.percent
+                    )
                 })
                 .unwrap_or_else(|| "-".to_string());
+            let hint = match change.and_then(|change| change.reference_time_ms) {
+                Some(time_ms) => {
+                    let time = i64::try_from(time_ms)
+                        .ok()
+                        .and_then(chrono::DateTime::from_timestamp_millis)
+                        .map(|time| time.format("%Y-%m-%d %H:%M:%S UTC").to_string())
+                        .unwrap_or_default();
+                    format!(
+                        "Minute-precision 24h change. Reference: completed candle at {time}, within one minute before 24 hours ago."
+                    )
+                }
+                None => "24-hour change using the exchange's previous-day price when available."
+                    .to_string(),
+            };
             let chg_val = text(change_text)
                 .size(12)
                 .font(crate::app_fonts::monospace_font())
@@ -75,7 +99,14 @@ impl TradingTerminal {
                 chg_val
             ]
             .spacing(2);
-            header_row = header_row.push(Space::new().width(8)).push(col_chg);
+            header_row = header_row.push(Space::new().width(8)).push(
+                tooltip(
+                    col_chg,
+                    text(hint).size(11).width(280),
+                    tooltip::Position::Bottom,
+                )
+                .style(iced::widget::container::rounded_box),
+            );
         }
 
         let is_outcome = self.is_outcome_coin(&instance.symbol);
@@ -134,17 +165,6 @@ impl TradingTerminal {
 
         header_row.into()
     }
-}
-
-/// Use the displayed last price and the exchange's 24-hour reference. Candle
-/// history covers an arbitrary lookback, so its first open is never a fallback
-/// for a missing (or expired) previous-day price.
-fn chart_24h_change(instance: &ChartInstance) -> Option<(f64, f64)> {
-    let current = instance.chart.candles.last()?.close;
-    let previous =
-        parse_positive_finite_number(instance.asset_ctx.as_ref()?.prev_day_px.as_deref()?)?;
-    let percent = positive_percent_change(Some(current), Some(previous))?;
-    Some((current - previous, percent))
 }
 
 #[cfg(test)]

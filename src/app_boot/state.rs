@@ -196,6 +196,7 @@ impl TradingTerminal {
             preset_edit_buffer: String::new(),
             preset_edit_idx: None,
             charts: parts.charts,
+            chart_price_change_history: Default::default(),
             next_chart_id: parts.next_chart_id,
             primary_chart_id: None,
             spaghetti_charts: parts.spaghetti_charts,
