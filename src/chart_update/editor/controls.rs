@@ -59,18 +59,10 @@ impl TradingTerminal {
                     .unwrap_or_default();
 
                 let filtered = self.chart_editor_filtered_symbols(&query);
-                let schwab_candidate = self.schwab_chart_symbol_candidate(&query);
-                let selected_key = match (schwab_candidate.as_ref(), selected_index) {
-                    (Some(key), Some(0)) => Some(key.clone()),
-                    (Some(key), None) if !query.is_empty() => Some(key.clone()),
-                    (Some(_), Some(index)) => filtered
-                        .get(index.saturating_sub(1))
-                        .map(|symbol| symbol.key.clone()),
-                    (None, Some(index)) => filtered.get(index).map(|symbol| symbol.key.clone()),
-                    (None, None) if !query.is_empty() => {
-                        filtered.first().map(|symbol| symbol.key.clone())
-                    }
-                    _ => None,
+                let selected_key = match selected_index {
+                    Some(index) => filtered.get(index).map(|symbol| symbol.key.clone()),
+                    None if !query.is_empty() => filtered.first().map(|symbol| symbol.key.clone()),
+                    None => None,
                 };
 
                 if let Some(key) = selected_key {
@@ -122,18 +114,10 @@ impl TradingTerminal {
                     .unwrap_or_default();
 
                 let filtered = self.chart_editor_filtered_symbols(&query);
-                let schwab_candidate = self.schwab_chart_symbol_candidate(&query);
-                let selected_key = match (schwab_candidate.as_ref(), selected_index) {
-                    (Some(key), Some(0)) => Some(key.clone()),
-                    (Some(key), None) if !query.is_empty() => Some(key.clone()),
-                    (Some(_), Some(index)) => filtered
-                        .get(index.saturating_sub(1))
-                        .map(|symbol| symbol.key.clone()),
-                    (None, Some(index)) => filtered.get(index).map(|symbol| symbol.key.clone()),
-                    (None, None) if !query.is_empty() => {
-                        filtered.first().map(|symbol| symbol.key.clone())
-                    }
-                    _ => None,
+                let selected_key = match selected_index {
+                    Some(index) => filtered.get(index).map(|symbol| symbol.key.clone()),
+                    None if !query.is_empty() => filtered.first().map(|symbol| symbol.key.clone()),
+                    None => None,
                 };
 
                 if let Some(key) = selected_key {

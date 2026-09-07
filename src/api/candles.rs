@@ -36,7 +36,6 @@ pub(crate) enum CandleFetchPolicy {
 pub(crate) struct ChartCandleFetchRequest {
     pub(crate) source: ChartBackfillSource,
     pub(crate) hydromancer_api_key: Zeroizing<String>,
-    pub(crate) schwab_access_token: Zeroizing<String>,
     pub(crate) coin: String,
     pub(crate) interval: String,
     pub(crate) start_time: u64,
@@ -96,7 +95,6 @@ pub(crate) async fn fetch_chart_backfill_candles(
     let ChartCandleFetchRequest {
         source,
         hydromancer_api_key,
-        schwab_access_token,
         coin,
         interval,
         start_time,
@@ -113,17 +111,6 @@ pub(crate) async fn fetch_chart_backfill_candles(
         }
         ChartBackfillSource::Hyperliquid => {
             fetch_hyperliquid_candles(coin, interval, start_time, end_time, policy).await
-        }
-        ChartBackfillSource::Schwab => {
-            fetch_schwab_candles(
-                schwab_access_token,
-                coin,
-                interval,
-                start_time,
-                end_time,
-                policy,
-            )
-            .await
         }
         ChartBackfillSource::Hydromancer => {
             let api_key = Zeroizing::new(hydromancer_api_key.trim().to_string());
@@ -195,49 +182,6 @@ pub(crate) async fn fetch_chart_backfill_candles(
             Ok(candles)
         }
     }
-}
-
-async fn fetch_schwab_candles(
-    access_token: Zeroizing<String>,
-    coin: String,
-    interval: String,
-    start_time: u64,
-    end_time: u64,
-    policy: CandleFetchPolicy,
-) -> Result<Vec<Candle>, String> {
-    if access_token.trim().is_empty() {
-        return Err("Schwab access token required for Schwab charts".to_string());
-    }
-
-    if policy.allows_cache()
-        && let Ok(Some(cached)) = crate::api_cache::load_candles_for_range(
-            ChartBackfillSource::Schwab,
-            &coin,
-            &interval,
-            start_time,
-            end_time,
-        )
-    {
-        return Ok(cached);
-    }
-
-    let timeframe = Timeframe::from_api_str_opt(&interval)
-        .ok_or_else(|| format!("Unsupported Schwab chart interval {interval}"))?;
-    let candles = crate::schwab::fetch_schwab_price_history(
-        access_token,
-        coin.clone(),
-        timeframe,
-        start_time,
-        end_time,
-    )
-    .await?;
-    let _ = crate::api_cache::merge_candle_page(
-        ChartBackfillSource::Schwab,
-        &coin,
-        &interval,
-        candles.clone(),
-    );
-    Ok(candles)
 }
 
 async fn fetch_hyperliquid_candles(

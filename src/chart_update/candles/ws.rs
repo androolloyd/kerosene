@@ -71,10 +71,8 @@ impl TradingTerminal {
         let now_ms = Self::now_ms();
         let should_flash = is_valid_candle(&candle);
         let symbol_is_spot = self.is_spot_coin(&symbol) || is_spot_asset_context_symbol(&symbol);
-        let symbol_allows_sparse_intervals = symbol_is_spot
-            || self.is_outcome_coin(&symbol)
-            || crate::schwab::is_schwab_symbol_key(&symbol)
-            || interval == Timeframe::Mo1.api_str();
+        let symbol_allows_sparse_intervals =
+            symbol_is_spot || self.is_outcome_coin(&symbol) || interval == Timeframe::Mo1.api_str();
         let mut refresh_funding_ids = Vec::new();
         let mut primary_rollover = false;
         let mut secondary_updated = false;

@@ -41,7 +41,6 @@ fn boot_chart_instances_restores_trade_marker_toggle() {
         &std::collections::HashSet::new(),
         crate::config::ChartBackfillSource::Hyperliquid,
         &zeroize::Zeroizing::new(String::new()),
-        &zeroize::Zeroizing::new(String::new()),
     );
 
     assert!(tasks.is_empty());
@@ -111,7 +110,6 @@ fn boot_defers_legacy_regular_chart_series_until_metadata_migration() {
         &[config],
         &std::collections::HashSet::new(),
         crate::config::ChartBackfillSource::Hyperliquid,
-        &zeroize::Zeroizing::new(String::new()),
         &zeroize::Zeroizing::new(String::new()),
     );
 

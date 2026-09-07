@@ -23,9 +23,7 @@ impl TradingTerminal {
         // Cache hydration is only a boot-time visual aid. It must never satisfy
         // historical pagination or certify freshness.
         if request.mode != CandleFetchMode::Refresh
-            || request.source
-                != self
-                    .chart_backfill_source_for_symbol_timeframe(&request.symbol, request.timeframe)
+            || request.source != self.chart_backfill_source_for_timeframe(request.timeframe)
             || request.read_data_provider_generation != self.read_data_provider_generation
             || (request.source == ChartBackfillSource::Hydromancer
                 && !self.hydromancer_key_generation_is_current(request.hydromancer_key_generation))
@@ -92,9 +90,7 @@ impl TradingTerminal {
         request: CandleFetchRequest,
         result: Result<Vec<Candle>, String>,
     ) -> Task<Message> {
-        if request.source
-            != self.chart_backfill_source_for_symbol_timeframe(&request.symbol, request.timeframe)
-        {
+        if request.source != self.chart_backfill_source_for_timeframe(request.timeframe) {
             return Task::none();
         }
         if request.read_data_provider_generation != self.read_data_provider_generation {
@@ -118,8 +114,6 @@ impl TradingTerminal {
         let response_has_interval_gap = result.as_ref().ok().is_some_and(|candles| {
             candle_series_has_unexpected_interval_gap(
                 candles,
-                request.source,
-                &request.symbol,
                 request.timeframe,
                 symbol_allows_sparse_intervals,
             )
@@ -185,8 +179,6 @@ impl TradingTerminal {
                         instance.chart.merge_candles(ws_updates);
                         let merged_has_interval_gap = candle_series_has_unexpected_interval_gap(
                             &instance.chart.candles,
-                            request.source,
-                            &request.symbol,
                             request.timeframe,
                             symbol_allows_sparse_intervals,
                         );
@@ -275,11 +267,7 @@ impl TradingTerminal {
         }
 
         if let Some(request) = retry_request {
-            return Self::fetch_candles_task(
-                request,
-                self.hydromancer_api_key_for_task(),
-                self.schwab.access_token_for_task(),
-            );
+            return Self::fetch_candles_task(request, self.hydromancer_api_key_for_task());
         }
 
         if let Some((symbol, tf, new_cache)) = new_cache_data {
@@ -314,9 +302,7 @@ impl TradingTerminal {
         request: CandleFetchRequest,
         result: Result<Vec<Candle>, String>,
     ) -> Task<Message> {
-        if request.source
-            != self.chart_backfill_source_for_symbol_timeframe(&request.symbol, request.timeframe)
-        {
+        if request.source != self.chart_backfill_source_for_timeframe(request.timeframe) {
             return Task::none();
         }
         if request.read_data_provider_generation != self.read_data_provider_generation {
@@ -339,8 +325,6 @@ impl TradingTerminal {
         let response_has_interval_gap = result.as_ref().ok().is_some_and(|candles| {
             candle_series_has_unexpected_interval_gap(
                 candles,
-                request.source,
-                &request.symbol,
                 request.timeframe,
                 symbol_allows_sparse_intervals,
             )
@@ -396,8 +380,6 @@ impl TradingTerminal {
                             .is_some_and(|series| {
                                 candle_series_has_unexpected_interval_gap(
                                     &series.candles,
-                                    request.source,
-                                    &request.symbol,
                                     request.timeframe,
                                     symbol_allows_sparse_intervals,
                                 )
@@ -468,7 +450,6 @@ impl TradingTerminal {
             return Self::fetch_secondary_candles_task(
                 request,
                 self.hydromancer_api_key_for_task(),
-                self.schwab.access_token_for_task(),
             );
         }
 
@@ -491,18 +472,12 @@ impl TradingTerminal {
 
 fn candle_series_has_unexpected_interval_gap(
     candles: &[Candle],
-    source: ChartBackfillSource,
-    symbol: &str,
     timeframe: crate::timeframe::Timeframe,
     symbol_allows_sparse_intervals: bool,
 ) -> bool {
-    // Calendar months and exchange-session closures do not represent missing
-    // cache data. Their varying/closed spans must not produce a permanent
-    // warning badge after a successful provider refresh.
-    if timeframe == crate::timeframe::Timeframe::Mo1
-        || source == ChartBackfillSource::Schwab
-        || crate::schwab::is_schwab_symbol_key(symbol)
-    {
+    // Calendar months have varying spans and must not produce a permanent
+    // gap warning after a successful provider refresh.
+    if timeframe == crate::timeframe::Timeframe::Mo1 {
         return false;
     }
     if symbol_allows_sparse_intervals {
@@ -515,7 +490,6 @@ fn candle_series_has_unexpected_interval_gap(
 fn candle_fetch_error_is_retryable(request: &CandleFetchRequest, error: &str) -> bool {
     match request.source {
         ChartBackfillSource::Hydromancer => !error.contains("Hydromancer API key required"),
-        ChartBackfillSource::Schwab => !error.contains("Schwab access token required"),
         ChartBackfillSource::Hyperliquid => true,
     }
 }

@@ -114,7 +114,7 @@ queued, and record coverage through the final close time. A snapshot without
 complete coverage cannot satisfy a range request.
 
 Continuous-market cache reads require exact interval spacing and return only
-the trailing exact run after a discontinuity. Sparse spot/outcome/Schwab and
+the trailing exact run after a discontinuity. Sparse spot/outcome and
 calendar-month data use the existing tolerant containment rule because missing
 trade buckets or variable calendar spans can be legitimate. Cached OHLC values
 are never rewritten, and the cache-containment logic does not synthesize bridge

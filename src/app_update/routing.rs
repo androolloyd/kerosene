@@ -635,17 +635,6 @@ pub(super) fn message_route(message: &Message) -> UpdateRoute {
         | Message::WalletAddressInputChanged(_)
         | Message::ToggleAccountPicker
         | Message::AccountPickerSelected(_)
-        | Message::SchwabClientIdChanged(_)
-        | Message::SchwabClientSecretChanged(_)
-        | Message::SchwabAccessTokenChanged(_)
-        | Message::SchwabRefreshTokenChanged(_)
-        | Message::SchwabConnect
-        | Message::SchwabAccessTokenRefreshed(_, _)
-        | Message::SchwabAccountsRefresh
-        | Message::SchwabAccountsLoaded(_, _)
-        | Message::SchwabAccountPickerSelected(_)
-        | Message::SchwabClearCredentials
-        | Message::SchwabTokenRefreshTick
         | Message::AccountPickerRenameToggled(_)
         | Message::AccountPickerLabelChanged(_, _)
         | Message::OpenAddAccountWindow

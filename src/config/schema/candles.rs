@@ -61,7 +61,6 @@ pub enum ChartBackfillSource {
     #[default]
     Hyperliquid,
     Hydromancer,
-    Schwab,
 }
 
 impl ChartBackfillSource {
@@ -69,7 +68,6 @@ impl ChartBackfillSource {
         match value {
             "Hyperliquid" => Some(Self::Hyperliquid),
             "Hydromancer" => Some(Self::Hydromancer),
-            "Schwab" => Some(Self::Schwab),
             _ => None,
         }
     }
@@ -78,7 +76,6 @@ impl ChartBackfillSource {
         match self {
             Self::Hyperliquid => "Hyperliquid",
             Self::Hydromancer => "Hydromancer",
-            Self::Schwab => "Schwab",
         }
     }
 }

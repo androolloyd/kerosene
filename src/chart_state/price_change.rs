@@ -138,8 +138,7 @@ impl TradingTerminal {
         symbol: &str,
         now_ms: u64,
     ) -> Option<PriceChangeReference> {
-        let context =
-            self.chart_backfill_request_context_for_symbol_timeframe(symbol, Timeframe::M1);
+        let context = self.chart_backfill_request_context_for_timeframe(Timeframe::M1);
         let fetched = self
             .chart_price_change_history
             .symbols

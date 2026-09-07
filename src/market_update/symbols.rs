@@ -557,7 +557,6 @@ impl TradingTerminal {
 
                 let chart_backfill_request_context = self.chart_backfill_request_context();
                 let hydromancer_api_key = self.hydromancer_api_key_for_task();
-                let schwab_access_token = self.schwab.access_token_for_task();
                 let mut reset_quick_order_chart_ids = Vec::new();
                 let mut chart_identity_changed = false;
                 for (id, inst) in self.charts.iter_mut() {
@@ -597,7 +596,6 @@ impl TradingTerminal {
                             let mut chart_tasks = vec![Self::fetch_candles_task(
                                 request,
                                 hydromancer_api_key.clone(),
-                                schwab_access_token.clone(),
                             )];
                             let macro_request_id = inst.next_macro_candles_request_id();
                             chart_tasks.extend(Self::fetch_macro_candles_tasks(
@@ -646,7 +644,6 @@ impl TradingTerminal {
                             tasks.push(Self::fetch_secondary_candles_task(
                                 request,
                                 hydromancer_api_key.clone(),
-                                schwab_access_token.clone(),
                             ));
                         }
                     }

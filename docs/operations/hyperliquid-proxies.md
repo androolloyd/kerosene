@@ -30,7 +30,7 @@ in-flight requests, rotating between equally busy routes. Each proxy owns a
 reusable reqwest client and connection pool.
 
 Only POSTs to `https://api.hyperliquid.xyz/info` enter the pool. Signed exchange
-actions, WebSocket streams, Hydromancer, HyperDash, Schwab, Telegram, and other
+actions, WebSocket streams, Hydromancer, HyperDash, Telegram, and other
 services retain their existing connections. Selecting Hydromancer as the read
 data provider does not send Hydromancer credentials through these proxies;
 any remaining official Hyperliquid REST reads still use the pool.

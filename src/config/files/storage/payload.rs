@@ -63,26 +63,6 @@ pub(super) fn merge_missing_plaintext_secrets_into_payload(
     {
         changed |= payload.set_global_x_refresh_token(&config.x_refresh_token);
     }
-    if payload.global_schwab_client_id().trim().is_empty()
-        && !config.schwab_client_id.trim().is_empty()
-    {
-        changed |= payload.set_global_schwab_client_id(&config.schwab_client_id);
-    }
-    if payload.global_schwab_client_secret().trim().is_empty()
-        && !config.schwab_client_secret.trim().is_empty()
-    {
-        changed |= payload.set_global_schwab_client_secret(&config.schwab_client_secret);
-    }
-    if payload.global_schwab_access_token().trim().is_empty()
-        && !config.schwab_access_token.trim().is_empty()
-    {
-        changed |= payload.set_global_schwab_access_token(&config.schwab_access_token);
-    }
-    if payload.global_schwab_refresh_token().trim().is_empty()
-        && !config.schwab_refresh_token.trim().is_empty()
-    {
-        changed |= payload.set_global_schwab_refresh_token(&config.schwab_refresh_token);
-    }
     if payload.global_openrouter_api_key().trim().is_empty()
         && !config.openrouter_api_key.trim().is_empty()
     {
@@ -186,14 +166,6 @@ pub(super) fn apply_secret_payload(config: &mut KeroseneConfig, payload: &Secret
     config.x_oauth_client_id = payload.global_x_oauth_client_id().to_string().into();
     config.x_refresh_token.zeroize();
     config.x_refresh_token = payload.global_x_refresh_token().to_string().into();
-    config.schwab_client_id.zeroize();
-    config.schwab_client_id = payload.global_schwab_client_id().to_string().into();
-    config.schwab_client_secret.zeroize();
-    config.schwab_client_secret = payload.global_schwab_client_secret().to_string().into();
-    config.schwab_access_token.zeroize();
-    config.schwab_access_token = payload.global_schwab_access_token().to_string().into();
-    config.schwab_refresh_token.zeroize();
-    config.schwab_refresh_token = payload.global_schwab_refresh_token().to_string().into();
     config.openrouter_api_key.zeroize();
     config.openrouter_api_key = payload.global_openrouter_api_key().to_string().into();
 }
@@ -242,22 +214,6 @@ pub(super) fn apply_secret_payload_preserving_missing_plaintext(
     if !payload.global_x_refresh_token().trim().is_empty() {
         config.x_refresh_token.zeroize();
         config.x_refresh_token = payload.global_x_refresh_token().to_string().into();
-    }
-    if !payload.global_schwab_client_id().trim().is_empty() {
-        config.schwab_client_id.zeroize();
-        config.schwab_client_id = payload.global_schwab_client_id().to_string().into();
-    }
-    if !payload.global_schwab_client_secret().trim().is_empty() {
-        config.schwab_client_secret.zeroize();
-        config.schwab_client_secret = payload.global_schwab_client_secret().to_string().into();
-    }
-    if !payload.global_schwab_access_token().trim().is_empty() {
-        config.schwab_access_token.zeroize();
-        config.schwab_access_token = payload.global_schwab_access_token().to_string().into();
-    }
-    if !payload.global_schwab_refresh_token().trim().is_empty() {
-        config.schwab_refresh_token.zeroize();
-        config.schwab_refresh_token = payload.global_schwab_refresh_token().to_string().into();
     }
     if !payload.global_openrouter_api_key().trim().is_empty() {
         config.openrouter_api_key.zeroize();

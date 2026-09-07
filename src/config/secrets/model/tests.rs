@@ -268,41 +268,70 @@ fn secret_payload_defaults_missing_profiles_bundle() {
     assert_eq!(payload.global_x_access_token(), "");
     assert_eq!(payload.global_x_oauth_client_id(), "");
     assert_eq!(payload.global_x_refresh_token(), "");
-    assert_eq!(payload.global_schwab_client_id(), "");
-    assert_eq!(payload.global_schwab_client_secret(), "");
-    assert_eq!(payload.global_schwab_access_token(), "");
-    assert_eq!(payload.global_schwab_refresh_token(), "");
     assert_eq!(payload.global_openrouter_api_key(), "");
 }
 
 #[test]
-fn secret_payload_with_only_schwab_credentials_is_not_empty() {
-    assert!(SecretPayload::from_credentials(&[], "", "").is_empty());
+fn global_secret_payload_serializes_only_supported_integrations() {
+    let serialized = serde_json::to_value(GlobalSecretPayload::default())
+        .expect("global credentials should serialize");
+    let keys: std::collections::BTreeSet<_> = serialized
+        .as_object()
+        .expect("global credentials should be an object")
+        .keys()
+        .map(String::as_str)
+        .collect();
 
-    let payload = SecretPayload::from_credentials_with_integrations(
-        &[],
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "schwab-access",
-        "",
-        "",
+    assert_eq!(
+        keys,
+        std::collections::BTreeSet::from([
+            "hyperliquid_proxy_urls",
+            "hydromancer_api_key",
+            "hyperdash_api_key",
+            "x_access_token",
+            "x_oauth_client_id",
+            "x_refresh_token",
+            "openrouter_api_key",
+        ])
     );
-    assert!(!payload.is_empty());
+}
+
+#[test]
+fn secret_payload_drops_unknown_credentials_and_preserves_supported_values() {
+    let json = serde_json::json!({
+        "schema": "kerosene.secrets.v1",
+        "profiles": [{"secret_id": "acct-a", "agent_key": "agent-a"}],
+        "global": {
+            "retired_integration_token": "retired-secret",
+            "hydromancer_api_key": "hydro-key",
+            "openrouter_api_key": "openrouter-key"
+        }
+    });
+    let payload: SecretPayload = serde_json::from_value(json)
+        .expect("unknown credentials should not block loading the bundle");
+    assert_eq!(payload.profile_agent_key("acct-a"), Some("agent-a"));
+    assert_eq!(payload.global_hydromancer_api_key(), "hydro-key");
+    assert_eq!(payload.global_openrouter_api_key(), "openrouter-key");
+
+    let serialized = serde_json::to_string(&payload).expect("bundle should serialize");
+    assert!(!serialized.contains("retired_integration_token"));
+    assert!(!serialized.contains("retired-secret"));
+    let restored: SecretPayload =
+        serde_json::from_str(&serialized).expect("supported credentials should round-trip");
+    assert_eq!(restored, payload);
+
+    let retired_only: SecretPayload = serde_json::from_value(serde_json::json!({
+        "schema": "kerosene.secrets.v1",
+        "global": {"retired_integration_token": "retired-secret"}
+    }))
+    .expect("bundle containing only unknown credentials should load");
+    assert!(retired_only.is_empty());
 }
 
 #[test]
 fn secret_payload_with_only_openrouter_key_is_not_empty() {
     let payload = SecretPayload::from_credentials_with_integrations(
         &[],
-        "",
-        "",
-        "",
-        "",
         "",
         "",
         "",
@@ -341,10 +370,6 @@ fn secret_payload_debug_redacts_secret_values() {
         "x-secret",
         "x-client-secret",
         "x-refresh-secret",
-        "schwab-id-secret",
-        "schwab-app-secret",
-        "schwab-access-secret",
-        "schwab-refresh-secret",
         "openrouter-secret",
     );
 
@@ -360,10 +385,6 @@ fn secret_payload_debug_redacts_secret_values() {
         "x-secret",
         "x-client-secret",
         "x-refresh-secret",
-        "schwab-id-secret",
-        "schwab-app-secret",
-        "schwab-access-secret",
-        "schwab-refresh-secret",
         "openrouter-secret",
     ] {
         assert!(!rendered.contains(secret), "debug output leaked {secret}");

@@ -54,9 +54,8 @@ impl TradingTerminal {
         } else {
             &instance.editor_search_query
         };
-        let schwab_candidate_available = self.schwab_chart_symbol_candidate(query).is_some();
 
-        let content = if self.exchange_symbols.is_empty() && !schwab_candidate_available {
+        let content = if self.exchange_symbols.is_empty() {
             column![
                 top_bar,
                 container(
@@ -68,11 +67,10 @@ impl TradingTerminal {
             ]
             .spacing(4)
         } else {
-            let schwab_candidate = self.schwab_chart_symbol_candidate(query);
             let filtered = self.chart_editor_filtered_symbols(query);
             let favs = &self.favourite_symbols;
 
-            let result_count = filtered.len() + usize::from(schwab_candidate.is_some());
+            let result_count = filtered.len();
             let count_label = text(format!("{result_count} symbols"))
                 .size(11)
                 .color(theme.extended_palette().background.weak.text);
@@ -85,36 +83,6 @@ impl TradingTerminal {
             let id = chart_id;
             let mut rows = Column::new().spacing(2);
             let mut past_favs = false;
-            let schwab_offset = usize::from(schwab_candidate.is_some());
-
-            if let Some(key) = schwab_candidate.as_deref() {
-                let is_selected = key == current_sym;
-                let is_keyboard_selected = if secondary {
-                    instance.secondary_editor_selected_index == Some(0)
-                } else {
-                    instance.editor_selected_index == Some(0)
-                };
-                rows = if secondary {
-                    rows.push(self.view_chart_secondary_editor_schwab_symbol_row(
-                        id,
-                        key,
-                        is_selected,
-                        is_keyboard_selected,
-                        &theme,
-                    ))
-                } else {
-                    rows.push(self.view_chart_editor_schwab_symbol_row(
-                        id,
-                        key,
-                        is_selected,
-                        is_keyboard_selected,
-                        &theme,
-                    ))
-                };
-                if !filtered.is_empty() {
-                    rows = rows.push(rule::horizontal(1));
-                }
-            }
 
             for (i, sym) in filtered.iter().enumerate() {
                 let is_fav = favs.contains(&sym.key);
@@ -126,9 +94,9 @@ impl TradingTerminal {
 
                 let is_selected = sym.key == current_sym;
                 let is_keyboard_selected = if secondary {
-                    instance.secondary_editor_selected_index == Some(i + schwab_offset)
+                    instance.secondary_editor_selected_index == Some(i)
                 } else {
-                    instance.editor_selected_index == Some(i + schwab_offset)
+                    instance.editor_selected_index == Some(i)
                 };
                 rows = if secondary {
                     rows.push(self.view_chart_secondary_editor_symbol_row(

@@ -240,8 +240,7 @@ fn exchange_reference_takes_priority_over_candle_fallback_and_is_shared() {
     let mut second = ChartInstance::new(2, "BTC".to_string(), Timeframe::D1);
     second.chart.candles = vec![Candle::test_flat(NOW, 110.0)];
     terminal.charts.insert(2, second);
-    let source_context =
-        terminal.chart_backfill_request_context_for_symbol_timeframe("BTC", Timeframe::M1);
+    let source_context = terminal.chart_backfill_request_context_for_timeframe(Timeframe::M1);
     let mut entry = PriceChangeHistoryEntry::new(source_context);
     entry.candles = vec![Candle::test_flat(
         NOW - PRICE_CHANGE_DAY_MS - PRICE_CHANGE_MINUTE_MS,

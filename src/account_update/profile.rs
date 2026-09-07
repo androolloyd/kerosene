@@ -1,4 +1,3 @@
-use crate::account_state::ActiveAccountSource;
 use crate::account_state::PositionsSortColumn;
 use crate::app_state::TradingTerminal;
 use crate::config;
@@ -286,7 +285,6 @@ impl TradingTerminal {
     pub(super) fn select_account_from_picker(&mut self, index: usize) -> Task<Message> {
         self.account_picker_open = false;
         self.account_picker_rename_index = None;
-        self.active_account_source = ActiveAccountSource::Hyperliquid;
         self.switch_account_task(index)
     }
 

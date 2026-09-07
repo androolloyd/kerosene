@@ -76,7 +76,7 @@ OS keychain mode stores profile/global secrets outside plaintext config.
 
 Normal credential saves are scoped read-modify-write operations: the existing
 bundle must be read successfully, and only the profile or integration named by
-the user action is changed. A Hydromancer, HyperDash, X, Schwab, OpenRouter, or
+the user action is changed. A Hydromancer, HyperDash, X, OpenRouter, or
 account-key save must never rebuild the whole bundle from runtime fields or
 interpret an unrelated empty field as a clear. Full-bundle replacement is
 reserved for explicit storage-mode migration and startup migration after all
@@ -110,9 +110,11 @@ Plain config snapshots intentionally write empty secret fields:
 - `x_access_token`
 - `x_oauth_client_id`
 - `x_refresh_token`
-- `schwab_client_id` / `schwab_client_secret` / `schwab_access_token` /
-  `schwab_refresh_token`
 - `openrouter_api_key`
+
+Unknown credential fields are ignored when reading config and decrypted secret
+payloads and omitted from subsequent serialization. This lets older bundles
+load after an integration is removed while preserving supported credentials.
 
 Saved account profiles persist secret IDs and wallet metadata, not raw agent
 keys. Secret payloads map secret IDs to agent keys and global integration

@@ -26,8 +26,7 @@ impl TradingTerminal {
             .retain(|symbol, _| symbols.contains(symbol));
         let mut tasks = Vec::new();
         for symbol in symbols {
-            let context =
-                self.chart_backfill_request_context_for_symbol_timeframe(&symbol, Timeframe::M1);
+            let context = self.chart_backfill_request_context_for_timeframe(Timeframe::M1);
             let entry = self
                 .chart_price_change_history
                 .symbols
@@ -70,7 +69,6 @@ impl TradingTerminal {
             let fetch_request = api::ChartCandleFetchRequest {
                 source: context.source,
                 hydromancer_api_key: self.hydromancer_api_key_for_task(),
-                schwab_access_token: self.schwab.access_token_for_task(),
                 coin: symbol,
                 interval: Timeframe::M1.api_str().to_string(),
                 start_time: request.start_ms,
@@ -91,8 +89,7 @@ impl TradingTerminal {
         result: Result<Vec<Candle>, String>,
         now_ms: u64,
     ) {
-        let current_context = self
-            .chart_backfill_request_context_for_symbol_timeframe(&request.symbol, Timeframe::M1);
+        let current_context = self.chart_backfill_request_context_for_timeframe(Timeframe::M1);
         let hidden = self.symbol_key_is_hidden(&request.symbol);
         let Some(entry) = self
             .chart_price_change_history

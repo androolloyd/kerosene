@@ -571,10 +571,6 @@ fn complete_keychain_bundle_rehydrates_every_credential_after_restart() {
         "x-access-token",
         "x-client-id",
         "x-refresh-token",
-        "schwab-client-id",
-        "schwab-client-secret",
-        "schwab-access-token",
-        "schwab-refresh-token",
         "openrouter-key",
     );
     let stores = Cell::new(0);
@@ -604,12 +600,6 @@ fn complete_keychain_bundle_rehydrates_every_credential_after_restart() {
     assert_eq!(x_access_token.as_str(), "x-access-token");
     assert_eq!(x_client_id.as_str(), "x-client-id");
     assert_eq!(x_refresh_token.as_str(), "x-refresh-token");
-    let (schwab_client_id, schwab_client_secret, schwab_access_token, schwab_refresh_token) =
-        terminal.schwab.oauth_credentials_for_secret();
-    assert_eq!(schwab_client_id.as_str(), "schwab-client-id");
-    assert_eq!(schwab_client_secret.as_str(), "schwab-client-secret");
-    assert_eq!(schwab_access_token.as_str(), "schwab-access-token");
-    assert_eq!(schwab_refresh_token.as_str(), "schwab-refresh-token");
 }
 
 #[test]

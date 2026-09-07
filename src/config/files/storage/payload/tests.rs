@@ -37,10 +37,6 @@ fn merge_plaintext_secrets_prefers_existing_payload_values() {
         x_access_token: "x-token".to_string().into(),
         x_oauth_client_id: "x-client".to_string().into(),
         x_refresh_token: "x-refresh".to_string().into(),
-        schwab_client_id: "schwab-id".to_string().into(),
-        schwab_client_secret: "schwab-secret".to_string().into(),
-        schwab_access_token: "schwab-access".to_string().into(),
-        schwab_refresh_token: "schwab-refresh".to_string().into(),
         ..KeroseneConfig::default()
     };
     let mut payload = SecretPayload::from_credentials(
@@ -61,10 +57,6 @@ fn merge_plaintext_secrets_prefers_existing_payload_values() {
     assert_eq!(payload.global_x_access_token(), "x-token");
     assert_eq!(payload.global_x_oauth_client_id(), "x-client");
     assert_eq!(payload.global_x_refresh_token(), "x-refresh");
-    assert_eq!(payload.global_schwab_client_id(), "schwab-id");
-    assert_eq!(payload.global_schwab_client_secret(), "schwab-secret");
-    assert_eq!(payload.global_schwab_access_token(), "schwab-access");
-    assert_eq!(payload.global_schwab_refresh_token(), "schwab-refresh");
 }
 
 #[test]
@@ -139,10 +131,6 @@ fn apply_secret_payload_replaces_plaintext_and_clears_profile_integrations() {
         x_access_token: "old-x-token".to_string().into(),
         x_oauth_client_id: "old-x-client".to_string().into(),
         x_refresh_token: "old-x-refresh".to_string().into(),
-        schwab_client_id: "old-schwab-id".to_string().into(),
-        schwab_client_secret: "old-schwab-secret".to_string().into(),
-        schwab_access_token: "old-schwab-access".to_string().into(),
-        schwab_refresh_token: "old-schwab-refresh".to_string().into(),
         openrouter_api_key: "old-openrouter".to_string().into(),
         ..KeroseneConfig::default()
     };
@@ -153,10 +141,6 @@ fn apply_secret_payload_replaces_plaintext_and_clears_profile_integrations() {
         "new-x-token",
         "new-x-client",
         "new-x-refresh",
-        "new-schwab-id",
-        "new-schwab-secret",
-        "new-schwab-access",
-        "new-schwab-refresh",
         "new-openrouter",
     );
 
@@ -171,10 +155,6 @@ fn apply_secret_payload_replaces_plaintext_and_clears_profile_integrations() {
     assert_eq!(config.x_access_token.as_str(), "new-x-token");
     assert_eq!(config.x_oauth_client_id.as_str(), "new-x-client");
     assert_eq!(config.x_refresh_token.as_str(), "new-x-refresh");
-    assert_eq!(config.schwab_client_id.as_str(), "new-schwab-id");
-    assert_eq!(config.schwab_client_secret.as_str(), "new-schwab-secret");
-    assert_eq!(config.schwab_access_token.as_str(), "new-schwab-access");
-    assert_eq!(config.schwab_refresh_token.as_str(), "new-schwab-refresh");
     assert_eq!(config.openrouter_api_key.as_str(), "new-openrouter");
 }
 
@@ -210,48 +190,6 @@ fn apply_secret_payload_preserving_plaintext_only_replaces_present_x_credentials
 }
 
 #[test]
-fn apply_secret_payload_preserving_plaintext_only_replaces_present_schwab_credentials() {
-    let mut config = KeroseneConfig {
-        schwab_client_id: "old-schwab-id".to_string().into(),
-        schwab_client_secret: "old-schwab-secret".to_string().into(),
-        schwab_access_token: "old-schwab-access".to_string().into(),
-        schwab_refresh_token: "old-schwab-refresh".to_string().into(),
-        ..KeroseneConfig::default()
-    };
-    let empty_payload = SecretPayload::from_credentials(&[], "", "");
-
-    apply_secret_payload_preserving_missing_plaintext(&mut config, &empty_payload);
-
-    assert_eq!(config.schwab_client_id.as_str(), "old-schwab-id");
-    assert_eq!(config.schwab_client_secret.as_str(), "old-schwab-secret");
-    assert_eq!(config.schwab_access_token.as_str(), "old-schwab-access");
-    assert_eq!(config.schwab_refresh_token.as_str(), "old-schwab-refresh");
-
-    let stored_payload = SecretPayload::from_credentials_with_integrations(
-        &[],
-        "",
-        "",
-        "",
-        "",
-        "",
-        "stored-schwab-id",
-        "stored-schwab-secret",
-        "stored-schwab-access",
-        "stored-schwab-refresh",
-        "",
-    );
-    apply_secret_payload_preserving_missing_plaintext(&mut config, &stored_payload);
-
-    assert_eq!(config.schwab_client_id.as_str(), "stored-schwab-id");
-    assert_eq!(config.schwab_client_secret.as_str(), "stored-schwab-secret");
-    assert_eq!(config.schwab_access_token.as_str(), "stored-schwab-access");
-    assert_eq!(
-        config.schwab_refresh_token.as_str(),
-        "stored-schwab-refresh"
-    );
-}
-
-#[test]
 fn apply_secret_payload_preserving_plaintext_only_replaces_present_openrouter_key() {
     let mut config = KeroseneConfig {
         openrouter_api_key: "old-openrouter".to_string().into(),
@@ -265,10 +203,6 @@ fn apply_secret_payload_preserving_plaintext_only_replaces_present_openrouter_ke
 
     let stored_payload = SecretPayload::from_credentials_with_integrations(
         &[],
-        "",
-        "",
-        "",
-        "",
         "",
         "",
         "",

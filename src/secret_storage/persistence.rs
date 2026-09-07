@@ -60,8 +60,6 @@ impl TradingTerminal {
         x_oauth_client_id: &str,
         x_refresh_token: &str,
     ) -> config::SecretPayload {
-        let (schwab_client_id, schwab_client_secret, schwab_access_token, schwab_refresh_token) =
-            self.schwab.oauth_credentials_for_secret();
         let openrouter_api_key = Zeroizing::new(self.openrouter_api_key.as_str().to_string());
         config::SecretPayload::from_credentials_with_integrations(
             accounts,
@@ -70,10 +68,6 @@ impl TradingTerminal {
             x_access_token,
             x_oauth_client_id,
             x_refresh_token,
-            schwab_client_id.as_str(),
-            schwab_client_secret.as_str(),
-            schwab_access_token.as_str(),
-            schwab_refresh_token.as_str(),
             openrouter_api_key.as_str(),
         )
         .with_hyperliquid_proxies(&self.hyperliquid_proxies.urls)
@@ -276,52 +270,6 @@ impl TradingTerminal {
         }
     }
 
-    pub(crate) fn persist_schwab_credentials_secret_from_keys(
-        &mut self,
-        schwab_client_id: &str,
-        schwab_client_secret: &str,
-        schwab_access_token: &str,
-        schwab_refresh_token: &str,
-    ) -> bool {
-        match self.secret_storage_mode {
-            config::CredentialStorageMode::OsKeychain => self.persist_keychain_secret_update(
-                config::KeychainSecretUpdate::SchwabOAuth {
-                    client_id: schwab_client_id,
-                    client_secret: schwab_client_secret,
-                    access_token: schwab_access_token,
-                    refresh_token: schwab_refresh_token,
-                },
-                "Schwab credentials saved to OS keychain",
-                "Schwab credential keychain save failed; credentials were not committed",
-            ),
-            config::CredentialStorageMode::EncryptedConfig => {
-                let accounts = self.persisted_accounts_snapshot();
-                let (x_access_token, x_oauth_client_id, x_refresh_token) =
-                    self.x_feed.oauth_credentials_for_secret();
-                let payload = config::SecretPayload::from_credentials_with_integrations(
-                    &accounts,
-                    &self.hydromancer_api_key,
-                    &self.hyperdash_api_key,
-                    x_access_token.as_str(),
-                    x_oauth_client_id.as_str(),
-                    x_refresh_token.as_str(),
-                    schwab_client_id,
-                    schwab_client_secret,
-                    schwab_access_token,
-                    schwab_refresh_token,
-                    &self.openrouter_api_key,
-                )
-                .with_hyperliquid_proxies(&self.hyperliquid_proxies.urls);
-                let persisted = self.persist_encrypted_secret_payload(
-                    payload,
-                    "Schwab credentials saved to encrypted config",
-                );
-                self.secret_migration_save_blocked = !persisted;
-                persisted
-            }
-        }
-    }
-
     pub(crate) fn persist_openrouter_secret_from_key(&mut self, openrouter_api_key: &str) -> bool {
         match self.secret_storage_mode {
             config::CredentialStorageMode::OsKeychain => self.persist_keychain_secret_update(
@@ -333,12 +281,6 @@ impl TradingTerminal {
                 let accounts = self.persisted_accounts_snapshot();
                 let (x_access_token, x_oauth_client_id, x_refresh_token) =
                     self.x_feed.oauth_credentials_for_secret();
-                let (
-                    schwab_client_id,
-                    schwab_client_secret,
-                    schwab_access_token,
-                    schwab_refresh_token,
-                ) = self.schwab.oauth_credentials_for_secret();
                 let payload = config::SecretPayload::from_credentials_with_integrations(
                     &accounts,
                     &self.hydromancer_api_key,
@@ -346,10 +288,6 @@ impl TradingTerminal {
                     x_access_token.as_str(),
                     x_oauth_client_id.as_str(),
                     x_refresh_token.as_str(),
-                    schwab_client_id.as_str(),
-                    schwab_client_secret.as_str(),
-                    schwab_access_token.as_str(),
-                    schwab_refresh_token.as_str(),
                     openrouter_api_key,
                 )
                 .with_hyperliquid_proxies(&self.hyperliquid_proxies.urls);

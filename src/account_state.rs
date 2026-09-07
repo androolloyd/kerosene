@@ -6,4 +6,4 @@ mod switching;
 mod types;
 
 pub(crate) use add_window::AddAccountWindowState;
-pub(crate) use types::{AccountPickerOption, ActiveAccountSource, BottomTab, PositionsSortColumn};
+pub(crate) use types::{AccountPickerOption, BottomTab, PositionsSortColumn};

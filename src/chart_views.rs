@@ -422,7 +422,6 @@ fn candle_tail_is_stale(instance: &ChartInstance, now_ms: u64) -> bool {
         || instance.symbol.starts_with('@')
         || instance.symbol.starts_with('#')
         || instance.symbol.contains('/')
-        || crate::schwab::is_schwab_symbol_key(&instance.symbol)
     {
         return false;
     }

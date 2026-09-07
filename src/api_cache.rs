@@ -76,7 +76,7 @@ fn load_fresh_candles_from_dir(
     // and re-saved on every boot, rendering as a phantom price jump. Serve only
     // the trailing contiguous run; older history is repopulated by backfill.
     let mut candles = candles;
-    let start = if cache_requires_exact_intervals(source, symbol, timeframe.api_str()) {
+    let start = if cache_requires_exact_intervals(symbol, timeframe.api_str()) {
         trailing_exact_run_start(&candles, timeframe.duration_ms())
     } else {
         trailing_contiguous_run_start(&candles, timeframe.duration_ms())
@@ -290,7 +290,7 @@ fn load_candles_for_range_from_dir(
     // the caller fetches the gap from the network instead of serving a gapped
     // subset that would be merged straight into the chart.
     if let Some(interval_ms) = candle_interval_ms(interval) {
-        let has_gap = if cache_requires_exact_intervals(source, symbol, interval) {
+        let has_gap = if cache_requires_exact_intervals(symbol, interval) {
             candles_have_interval_discontinuity(&subset, interval_ms)
         } else {
             candles_have_interior_gap(&subset, interval_ms)
@@ -452,7 +452,6 @@ fn source_key(source: ChartBackfillSource) -> &'static str {
     match source {
         ChartBackfillSource::Hyperliquid => "hyperliquid",
         ChartBackfillSource::Hydromancer => "hydromancer",
-        ChartBackfillSource::Schwab => "schwab",
     }
 }
 
@@ -462,13 +461,8 @@ fn candle_interval_ms(interval: &str) -> Option<u64> {
         .map(Timeframe::duration_ms)
 }
 
-pub(crate) fn cache_requires_exact_intervals(
-    source: ChartBackfillSource,
-    symbol: &str,
-    interval: &str,
-) -> bool {
-    source != ChartBackfillSource::Schwab
-        && !symbol.starts_with('@')
+pub(crate) fn cache_requires_exact_intervals(symbol: &str, interval: &str) -> bool {
+    !symbol.starts_with('@')
         && !symbol.starts_with('#')
         && !symbol.contains('/')
         && interval != Timeframe::Mo1.api_str()
@@ -1074,16 +1068,8 @@ mod tests {
 
     #[test]
     fn api_named_spot_pair_does_not_require_continuous_market_spacing() {
-        assert!(!cache_requires_exact_intervals(
-            ChartBackfillSource::Hyperliquid,
-            "PURR/USDC",
-            "1m"
-        ));
-        assert!(cache_requires_exact_intervals(
-            ChartBackfillSource::Hyperliquid,
-            "BTC",
-            "1m"
-        ));
+        assert!(!cache_requires_exact_intervals("PURR/USDC", "1m"));
+        assert!(cache_requires_exact_intervals("BTC", "1m"));
     }
 
     #[test]

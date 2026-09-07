@@ -1,11 +1,9 @@
 use super::{ChartEditorSelectionStep, next_chart_editor_selection};
-use crate::account_state::ActiveAccountSource;
 use crate::api::{ExchangeSymbol, MarketType};
 use crate::app_state::TradingTerminal;
 use crate::canvas_state::WorkspaceId;
 use crate::chart_state::{ChartInstance, ChartSurfaceId, DetachedChartWindowState};
 use crate::pane_state::PaneKind;
-use crate::schwab::SchwabState;
 use crate::timeframe::Timeframe;
 use crate::{config, message::Message};
 
@@ -241,7 +239,7 @@ fn configured_hotkey_ignores_auxiliary_window_keyboard_event() {
 }
 
 #[test]
-fn chart_editor_keyboard_selection_counts_schwab_candidate_row() {
+fn chart_editor_keyboard_selection_stays_on_last_exchange_result() {
     let mut terminal = TradingTerminal::boot().0;
     let main_window_id = iced::window::Id::unique();
     let detached_window_id = iced::window::Id::unique();
@@ -251,8 +249,6 @@ fn chart_editor_keyboard_selection_counts_schwab_candidate_row() {
     terminal.charts.clear();
     terminal.detached_chart_windows.clear();
     terminal.exchange_symbols = vec![symbol("BTC")];
-    terminal.active_account_source = ActiveAccountSource::Schwab;
-    terminal.schwab = SchwabState::new("", "", "schwab-access-token", "");
 
     let mut instance = ChartInstance::new(chart_id, "BTC".to_string(), Timeframe::H1);
     instance
@@ -276,13 +272,12 @@ fn chart_editor_keyboard_selection_counts_schwab_candidate_row() {
         ));
     }
 
-    // Row 0 is the Schwab candidate; the lone exchange symbol sits at row 1 and
-    // must stay reachable by keyboard.
+    // Repeated navigation stays on the lone exchange result.
     assert_eq!(
         terminal
             .charts
             .get(&chart_id)
             .and_then(|instance| instance.editor_selected_index),
-        Some(1)
+        Some(0)
     );
 }

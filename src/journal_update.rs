@@ -711,7 +711,6 @@ impl TradingTerminal {
             api::fetch_chart_backfill_candles(api::ChartCandleFetchRequest {
                 source: fetch_request.source,
                 hydromancer_api_key,
-                schwab_access_token: zeroize::Zeroizing::new(String::new()),
                 coin: fetch_request.coin,
                 interval: fetch_request.timeframe.api_str().to_string(),
                 start_time: fetch_request.start_ms,

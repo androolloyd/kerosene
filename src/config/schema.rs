@@ -353,22 +353,6 @@ pub struct KeroseneConfig {
     #[serde(default)]
     #[serde(skip_serializing)]
     pub x_refresh_token: Zeroizing<String>,
-    /// Schwab developer app key used for user-provided OAuth refreshes.
-    #[serde(default)]
-    #[serde(skip_serializing)]
-    pub schwab_client_id: Zeroizing<String>,
-    /// Schwab developer app secret used for user-provided OAuth refreshes.
-    #[serde(default)]
-    #[serde(skip_serializing)]
-    pub schwab_client_secret: Zeroizing<String>,
-    /// Schwab OAuth access token for account and market-data requests.
-    #[serde(default)]
-    #[serde(skip_serializing)]
-    pub schwab_access_token: Zeroizing<String>,
-    /// Schwab OAuth refresh token for account and market-data requests.
-    #[serde(default)]
-    #[serde(skip_serializing)]
-    pub schwab_refresh_token: Zeroizing<String>,
     /// OpenRouter API key for AI news and TradFi filing summaries.
     #[serde(default)]
     #[serde(skip_serializing)]

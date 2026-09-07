@@ -68,12 +68,11 @@ pub(super) fn get_fresh_cached_candles(
     // Mirror the on-disk guard: hand back only the trailing contiguous run so an
     // interior gap is never re-displayed. The clean chart series overwrites this
     // entry on the next `cache_candles`, healing the LRU.
-    let start =
-        if crate::api_cache::cache_requires_exact_intervals(source, symbol, timeframe.api_str()) {
-            api::trailing_exact_run_start(&candles, timeframe.duration_ms())
-        } else {
-            api::trailing_contiguous_run_start(&candles, timeframe.duration_ms())
-        };
+    let start = if crate::api_cache::cache_requires_exact_intervals(symbol, timeframe.api_str()) {
+        api::trailing_exact_run_start(&candles, timeframe.duration_ms())
+    } else {
+        api::trailing_contiguous_run_start(&candles, timeframe.duration_ms())
+    };
     if start > 0 {
         candles.drain(0..start);
     }

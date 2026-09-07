@@ -109,10 +109,7 @@ impl TradingTerminal {
                         id,
                         &primary_symbol,
                         tf,
-                        self.chart_backfill_request_context_for_symbol_timeframe(
-                            &primary_symbol,
-                            tf,
-                        ),
+                        self.chart_backfill_request_context_for_timeframe(tf),
                         None,
                         0,
                     );
@@ -120,7 +117,6 @@ impl TradingTerminal {
                     boot_tasks.push(Self::fetch_candles_task(
                         request,
                         self.hydromancer_api_key_for_task(),
-                        self.schwab.access_token_for_task(),
                     ));
                 } else if !tf.uses_candle_backfill() {
                     instance.chart.status = crate::chart::ChartStatus::Loaded;
@@ -145,7 +141,7 @@ impl TradingTerminal {
                     id,
                     &symbol,
                     tf,
-                    self.chart_backfill_request_context_for_symbol_timeframe(&symbol, tf),
+                    self.chart_backfill_request_context_for_timeframe(tf),
                     None,
                     0,
                 );
@@ -153,7 +149,6 @@ impl TradingTerminal {
                 boot_tasks.push(Self::fetch_secondary_candles_task(
                     request,
                     self.hydromancer_api_key_for_task(),
-                    self.schwab.access_token_for_task(),
                 ));
             }
             charts.insert(id, instance);

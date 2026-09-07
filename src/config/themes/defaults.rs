@@ -55,13 +55,6 @@ pub(crate) fn default_custom_themes() -> Vec<CustomThemeConfig> {
             chart: None,
         },
         ThemeSpec {
-            name: "Charles Schwab",
-            colors: [
-                "#FFFFFF", "#1C1C1C", "#00A0DF", "#188B50", "#F2A900", "#D9272E",
-            ],
-            chart: None,
-        },
-        ThemeSpec {
             name: "Interactive Brokers",
             colors: [
                 "#FFFFFF", "#000000", "#D82724", "#008A00", "#FF8C00", "#D82724",
@@ -72,20 +65,6 @@ pub(crate) fn default_custom_themes() -> Vec<CustomThemeConfig> {
             name: "Robinhood",
             colors: [
                 "#000000", "#FFFFFF", "#00C805", "#00C805", "#FFB100", "#FF5000",
-            ],
-            chart: None,
-        },
-        ThemeSpec {
-            name: "Schwab Black",
-            colors: [
-                "#000000", "#F0F0F0", "#00A0DF", "#188B50", "#F2A900", "#D9272E",
-            ],
-            chart: None,
-        },
-        ThemeSpec {
-            name: "thinkorswim",
-            colors: [
-                "#131722", "#D9D9D9", "#F29333", "#00B159", "#F99127", "#E34538",
             ],
             chart: None,
         },

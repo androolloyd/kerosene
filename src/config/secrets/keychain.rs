@@ -44,12 +44,6 @@ pub(crate) enum KeychainSecretUpdate<'a> {
         client_id: &'a str,
         refresh_token: &'a str,
     },
-    SchwabOAuth {
-        client_id: &'a str,
-        client_secret: &'a str,
-        access_token: &'a str,
-        refresh_token: &'a str,
-    },
     OpenRouter(&'a str),
     HyperliquidProxies(&'a [crate::api::proxy::ProxyUrl]),
 }
@@ -295,17 +289,6 @@ fn apply_keychain_secret_update(payload: &mut SecretPayload, update: KeychainSec
             payload.set_global_x_oauth_client_id(client_id);
             payload.set_global_x_refresh_token(refresh_token);
         }
-        KeychainSecretUpdate::SchwabOAuth {
-            client_id,
-            client_secret,
-            access_token,
-            refresh_token,
-        } => {
-            payload.set_global_schwab_client_id(client_id);
-            payload.set_global_schwab_client_secret(client_secret);
-            payload.set_global_schwab_access_token(access_token);
-            payload.set_global_schwab_refresh_token(refresh_token);
-        }
         KeychainSecretUpdate::HyperliquidProxies(urls) => {
             payload.global.hyperliquid_proxy_urls = urls.to_vec();
         }
@@ -332,17 +315,6 @@ fn keychain_update_explicitly_clears(update: KeychainSecretUpdate<'_>) -> bool {
                 && client_id.trim().is_empty()
                 && refresh_token.trim().is_empty()
         }
-        KeychainSecretUpdate::SchwabOAuth {
-            client_id,
-            client_secret,
-            access_token,
-            refresh_token,
-        } => {
-            client_id.trim().is_empty()
-                && client_secret.trim().is_empty()
-                && access_token.trim().is_empty()
-                && refresh_token.trim().is_empty()
-        }
     }
 }
 
@@ -360,7 +332,6 @@ fn cleanup_legacy_keychain_update(update: KeychainSecretUpdate<'_>) -> Result<()
         }
         KeychainSecretUpdate::Hyperdash(_) => clear_legacy_global_secret_field("hyperdash_api_key"),
         KeychainSecretUpdate::XOAuth { .. }
-        | KeychainSecretUpdate::SchwabOAuth { .. }
         | KeychainSecretUpdate::OpenRouter(_)
         | KeychainSecretUpdate::HyperliquidProxies(_) => Ok(()),
     }
@@ -541,10 +512,6 @@ pub fn store_keychain_secrets_with_profile_removals_with_integrations(
     x_access_token: &str,
     x_oauth_client_id: &str,
     x_refresh_token: &str,
-    schwab_client_id: &str,
-    schwab_client_secret: &str,
-    schwab_access_token: &str,
-    schwab_refresh_token: &str,
     openrouter_api_key: &str,
     hyperliquid_proxy_urls: &[crate::api::proxy::ProxyUrl],
     removed_profile_secret_ids: &[String],
@@ -560,10 +527,6 @@ pub fn store_keychain_secrets_with_profile_removals_with_integrations(
         x_access_token,
         x_oauth_client_id,
         x_refresh_token,
-        schwab_client_id,
-        schwab_client_secret,
-        schwab_access_token,
-        schwab_refresh_token,
         openrouter_api_key,
         hyperliquid_proxy_urls,
         removed_profile_secret_ids,
@@ -605,10 +568,6 @@ fn store_keychain_secrets_with_profile_removals_with<
     x_access_token: &str,
     x_oauth_client_id: &str,
     x_refresh_token: &str,
-    schwab_client_id: &str,
-    schwab_client_secret: &str,
-    schwab_access_token: &str,
-    schwab_refresh_token: &str,
     openrouter_api_key: &str,
     hyperliquid_proxy_urls: &[crate::api::proxy::ProxyUrl],
     removed_profile_secret_ids: &[String],
@@ -634,10 +593,6 @@ where
         x_access_token,
         x_oauth_client_id,
         x_refresh_token,
-        schwab_client_id,
-        schwab_client_secret,
-        schwab_access_token,
-        schwab_refresh_token,
         openrouter_api_key,
     )
     .with_hyperliquid_proxies(hyperliquid_proxy_urls);
@@ -1137,10 +1092,6 @@ mod tests {
             "",
             "",
             "",
-            "",
-            "",
-            "",
-            "",
             &urls,
             &[],
             KeychainProfileRemovalStoreHooks {
@@ -1178,12 +1129,6 @@ mod tests {
                 client_id: "x-client-id",
                 refresh_token: "x-refresh-token",
             },
-            KeychainSecretUpdate::SchwabOAuth {
-                client_id: "schwab-client-id",
-                client_secret: "schwab-client-secret",
-                access_token: "schwab-access-token",
-                refresh_token: "schwab-refresh-token",
-            },
             KeychainSecretUpdate::OpenRouter("openrouter-key"),
         ] {
             update_keychain_secret_payload_with(update, update_hooks(&payload, &cleanup_calls))
@@ -1201,18 +1146,8 @@ mod tests {
         assert_eq!(payload.global_x_access_token(), "x-access-token");
         assert_eq!(payload.global_x_oauth_client_id(), "x-client-id");
         assert_eq!(payload.global_x_refresh_token(), "x-refresh-token");
-        assert_eq!(payload.global_schwab_client_id(), "schwab-client-id");
-        assert_eq!(
-            payload.global_schwab_client_secret(),
-            "schwab-client-secret"
-        );
-        assert_eq!(payload.global_schwab_access_token(), "schwab-access-token");
-        assert_eq!(
-            payload.global_schwab_refresh_token(),
-            "schwab-refresh-token"
-        );
         assert_eq!(payload.global_openrouter_api_key(), "openrouter-key");
-        assert_eq!(cleanup_calls.get(), 7);
+        assert_eq!(cleanup_calls.get(), 6);
     }
 
     #[test]
@@ -1226,10 +1161,6 @@ mod tests {
             "x-access-token",
             "x-client-id",
             "x-refresh-token",
-            "schwab-client-id",
-            "schwab-client-secret",
-            "schwab-access-token",
-            "schwab-refresh-token",
             "openrouter-key",
         )));
         let cleanup_calls = Cell::new(0);
@@ -1246,7 +1177,6 @@ mod tests {
         assert_eq!(payload.global_hydromancer_api_key(), "hydromancer-key");
         assert_eq!(payload.global_hyperdash_api_key(), "hyperdash-key");
         assert_eq!(payload.global_x_access_token(), "x-access-token");
-        assert_eq!(payload.global_schwab_client_id(), "schwab-client-id");
         assert!(payload.global_openrouter_api_key().is_empty());
     }
 
@@ -1479,10 +1409,6 @@ mod tests {
             "",
             "",
             "",
-            "",
-            "",
-            "",
-            "",
             &[],
             &[removed_profile.secret_id.clone()],
             KeychainProfileRemovalStoreHooks {
@@ -1537,10 +1463,6 @@ mod tests {
 
         let result = store_keychain_secrets_with_profile_removals_with(
             &[kept_profile, removed_profile.clone()],
-            "",
-            "",
-            "",
-            "",
             "",
             "",
             "",

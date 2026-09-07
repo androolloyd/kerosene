@@ -34,6 +34,25 @@ fn legacy_journal_entries_deserialize_without_account_scope() {
 }
 
 #[test]
+fn config_ignores_unknown_credentials_without_rewriting_them() {
+    let mut value = default_config_value();
+    object_mut(&mut value, "config should serialize to object").insert(
+        "retired_integration_token".to_string(),
+        serde_json::json!("retired-secret"),
+    );
+
+    let config: KeroseneConfig =
+        value_from_json(value, "unknown credentials should not block loading config");
+    assert_eq!(
+        config.credential_storage_mode,
+        CredentialStorageMode::OsKeychain
+    );
+    let serialized = json_string(&config, "config should serialize");
+    assert!(!serialized.contains("retired_integration_token"));
+    assert!(!serialized.contains("retired-secret"));
+}
+
+#[test]
 fn serialized_config_keeps_raw_credentials_out_of_json() {
     let profiles = vec![AccountProfile {
         secret_id: "acct-a".to_string(),

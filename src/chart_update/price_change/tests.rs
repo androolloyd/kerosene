@@ -267,7 +267,6 @@ async fn live_chart_24h_candle_fallback() {
         let candles = api::fetch_chart_backfill_candles(api::ChartCandleFetchRequest {
             source: pending.context.source,
             hydromancer_api_key: Default::default(),
-            schwab_access_token: Default::default(),
             coin: symbol.to_string(),
             interval: Timeframe::M1.api_str().to_string(),
             start_time: pending.start_ms,

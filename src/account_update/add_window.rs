@@ -1,4 +1,4 @@
-use crate::account_state::{ActiveAccountSource, AddAccountWindowState};
+use crate::account_state::AddAccountWindowState;
 use crate::app_state::TradingTerminal;
 use crate::config;
 use crate::helpers::redact_sensitive_response_text;
@@ -167,7 +167,6 @@ impl TradingTerminal {
             self.last_persisted_active_account_secret_id = Some(secret_id.clone());
             self.journal.switch_active_account(Some(secret_id));
             if switch_on_add {
-                self.active_account_source = ActiveAccountSource::Hyperliquid;
                 self.account_connect_pending = true;
                 return Task::batch([close_task, Task::done(Message::ConnectWallet)]);
             }
@@ -177,9 +176,7 @@ impl TradingTerminal {
 
         if switch_on_add {
             let switch_task = self.switch_account_task(new_index);
-            if self.active_account_index == new_index {
-                self.active_account_source = ActiveAccountSource::Hyperliquid;
-            } else {
+            if self.active_account_index != new_index {
                 self.push_toast(
                     format!("Added account \"{profile_name}\" without switching to it"),
                     false,
@@ -354,10 +351,6 @@ mod tests {
         assert_eq!(terminal.accounts[1].name, "Account 2");
         assert_eq!(terminal.active_account_index, 1);
         assert_eq!(terminal.wallet_address_input, ADDRESS_B);
-        assert_eq!(
-            terminal.active_account_source,
-            ActiveAccountSource::Hyperliquid
-        );
     }
 
     #[test]

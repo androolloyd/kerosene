@@ -53,12 +53,6 @@ impl TradingTerminal {
     pub(crate) fn apply_secret_storage_selection(&mut self) {
         match self.secret_storage_selection {
             config::CredentialStorageMode::OsKeychain => {
-                let (
-                    schwab_client_id,
-                    schwab_client_secret,
-                    schwab_access_token,
-                    schwab_refresh_token,
-                ) = self.schwab.oauth_credentials_for_secret();
                 let hyperliquid_proxy_urls = self.hyperliquid_proxies.urls.clone();
                 let openrouter_api_key =
                     Zeroizing::new(self.openrouter_api_key.as_str().to_string());
@@ -77,10 +71,6 @@ impl TradingTerminal {
                             x_access_token,
                             x_oauth_client_id,
                             x_refresh_token,
-                            schwab_client_id.as_str(),
-                            schwab_client_secret.as_str(),
-                            schwab_access_token.as_str(),
-                            schwab_refresh_token.as_str(),
                             openrouter_api_key.as_str(),
                             &hyperliquid_proxy_urls,
                             &[],
@@ -530,35 +520,6 @@ fn merge_missing_keychain_payload_secrets(
         && !keychain_payload.global_x_refresh_token().trim().is_empty()
     {
         payload.set_global_x_refresh_token(keychain_payload.global_x_refresh_token());
-    }
-    if payload.global_schwab_client_id().trim().is_empty()
-        && !keychain_payload.global_schwab_client_id().trim().is_empty()
-    {
-        payload.set_global_schwab_client_id(keychain_payload.global_schwab_client_id());
-    }
-    if payload.global_schwab_client_secret().trim().is_empty()
-        && !keychain_payload
-            .global_schwab_client_secret()
-            .trim()
-            .is_empty()
-    {
-        payload.set_global_schwab_client_secret(keychain_payload.global_schwab_client_secret());
-    }
-    if payload.global_schwab_access_token().trim().is_empty()
-        && !keychain_payload
-            .global_schwab_access_token()
-            .trim()
-            .is_empty()
-    {
-        payload.set_global_schwab_access_token(keychain_payload.global_schwab_access_token());
-    }
-    if payload.global_schwab_refresh_token().trim().is_empty()
-        && !keychain_payload
-            .global_schwab_refresh_token()
-            .trim()
-            .is_empty()
-    {
-        payload.set_global_schwab_refresh_token(keychain_payload.global_schwab_refresh_token());
     }
     if payload.global_openrouter_api_key().trim().is_empty()
         && !keychain_payload
