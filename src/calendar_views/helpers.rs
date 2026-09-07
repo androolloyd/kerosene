@@ -108,3 +108,16 @@ pub(super) fn next_important_event(
         })
         .min_by_key(|(_, dt)| *dt)
 }
+
+// Softer rules keep the dense table readable in both light and dark themes.
+pub(super) fn separator_style(theme: &Theme) -> iced::widget::rule::Style {
+    iced::widget::rule::Style {
+        color: theme
+            .extended_palette()
+            .background
+            .strong
+            .color
+            .scale_alpha(0.4),
+        ..iced::widget::rule::default(theme)
+    }
+}

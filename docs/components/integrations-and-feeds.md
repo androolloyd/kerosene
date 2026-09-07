@@ -297,6 +297,14 @@ Key modules:
 Calendar fetches are one-shot tasks triggered by pane open, manual refresh, or
 timer/retry behavior.
 
+The calendar uses a compact table at pane widths of 640px and above, with a
+grouped date gutter, local event times, impact pills, and right-aligned forecast
+and previous values. Narrower panes stack event details and omit empty value
+lines. Time and event-title tooltips retain relative timing and full titles in
+the table. Window/impact filters and refresh share a toolbar; the next release
+and data freshness appear in the footer. Refreshes preserve the scroll position
+instead of estimating an offset from unfiltered rows and fixed row heights.
+
 ## Screener
 
 The screener uses watchlist context/history data and displays market scans in a

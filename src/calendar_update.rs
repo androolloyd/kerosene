@@ -1,7 +1,6 @@
 use crate::app_state::TradingTerminal;
 use crate::helpers::redact_sensitive_response_text;
 use crate::message::Message;
-use chrono::{DateTime, Local, Utc};
 use iced::Task;
 use std::time::{Duration, Instant};
 
@@ -28,41 +27,8 @@ impl TradingTerminal {
                         self.calendar_retry_attempts = 0;
                         self.calendar_next_retry = None;
 
-                        let now = Utc::now();
-                        let mut offset_y: f32 = 0.0;
-                        let mut current_day = String::new();
-                        let row_height: f32 = 40.0;
-                        let spacing: f32 = 8.0;
-                        let header_height: f32 = 44.0;
-
-                        for event in self.calendar_events.iter() {
-                            if let Ok(dt) = DateTime::parse_from_rfc3339(&event.date) {
-                                let local_dt = dt.with_timezone(&Local);
-                                let day_str = local_dt.format("%A, %b %e").to_string();
-
-                                if day_str != current_day {
-                                    current_day = day_str;
-                                    offset_y += header_height;
-                                }
-
-                                if dt.with_timezone(&Utc) > now {
-                                    break;
-                                }
-
-                                offset_y += row_height + spacing + 1.0;
-                            }
-                        }
-
-                        let final_offset = (offset_y - 200.0).max(0.0);
-
-                        return iced::widget::operation::scroll_to(
-                            iced::widget::Id::new("calendar_scroll"),
-                            iced::widget::scrollable::AbsoluteOffset {
-                                x: None,
-                                y: Some(final_offset),
-                            },
-                        )
-                        .map(|_: ()| Message::NoOp);
+                        // Preserve the viewport on refresh. The Upcoming filter already
+                        // removes older releases, and responsive rows have varying heights.
                     }
                     Err(e) => {
                         self.calendar_error = Some(redact_sensitive_response_text(&e));
@@ -156,6 +122,28 @@ mod tests {
 
         assert_eq!(terminal.calendar_events.len(), 1);
         assert_eq!(terminal.calendar_events[0].title, "accepted");
+    }
+
+    #[test]
+    fn calendar_refresh_updates_data_without_moving_the_viewport() {
+        let mut terminal = terminal_with_calendar_pane();
+        terminal.calendar_loading = true;
+        terminal.calendar_request_id = 4;
+        terminal.calendar_events = vec![event("old")];
+        terminal.calendar_error = Some("previous refresh failed".to_string());
+        terminal.calendar_retry_attempts = 2;
+        terminal.calendar_next_retry = Some(Instant::now());
+
+        let task = terminal.update_calendar(Message::CalendarLoaded(4, Ok(vec![event("fresh")])));
+
+        assert_eq!(terminal.calendar_events[0].title, "fresh");
+        assert!(!terminal.calendar_loading);
+        assert!(terminal.calendar_error.is_none());
+        assert!(terminal.calendar_last_fetch.is_some());
+        assert_eq!(terminal.calendar_retry_attempts, 0);
+        assert!(terminal.calendar_next_retry.is_none());
+        // Fixed offsets based on unfiltered rows would skip events in the compact layout.
+        assert_eq!(task.units(), 0);
     }
 
     #[test]

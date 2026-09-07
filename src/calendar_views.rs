@@ -9,6 +9,17 @@ use iced::widget::{column, container, responsive, rule, scrollable};
 use iced::{Element, Fill};
 use std::time::Instant;
 
+// Shared by the header and rows so resizing never shifts their columns apart.
+const TABLE_MIN_WIDTH: f32 = 640.0;
+const DATE_WIDTH: f32 = 56.0;
+const TIME_WIDTH: f32 = 58.0;
+const MARKET_WIDTH: f32 = 44.0;
+const IMPACT_WIDTH: f32 = 66.0;
+const VALUE_WIDTH: f32 = 64.0;
+const COLUMN_SPACING: f32 = 8.0;
+const ROW_HEIGHT: f32 = 32.0;
+const SCROLLBAR_WIDTH: f32 = 6.0;
+
 // ---------------------------------------------------------------------------
 // Economic calendar view
 // ---------------------------------------------------------------------------
@@ -20,8 +31,7 @@ impl TradingTerminal {
 
     fn view_calendar_sized(&self, available_width: f32) -> Element<'_, Message> {
         let theme = self.theme();
-        let compact = available_width < 560.0;
-        let medium = available_width < 860.0;
+        let compact = available_width < TABLE_MIN_WIDTH;
         let now_utc = utc_datetime_from_unix_ms(self.status_bar_now_ms);
         let now_local = local_datetime_from_unix_ms(self.status_bar_now_ms);
 
@@ -48,28 +58,45 @@ impl TradingTerminal {
         let next_important = helpers::next_important_event(&self.calendar_events, now_utc);
 
         let mut content = column![
-            self.view_calendar_top_bar(compact),
-            self.view_calendar_filters(),
-            self.view_calendar_status_row(status_text, status_color),
-            self.view_calendar_summary(next_important, now_utc),
-            rule::horizontal(1),
-        ]
-        .spacing(6);
+            self.view_calendar_top_bar(),
+            rule::horizontal(1).style(helpers::separator_style)
+        ];
 
-        if !compact && !medium && !self.calendar_events.is_empty() {
+        if !compact {
             content = content.push(self.view_calendar_table_header());
         }
 
-        let content = content.push(
-            scrollable(self.view_calendar_event_list(compact, medium, filtered, now_utc))
-                .id(iced::widget::Id::new("calendar_scroll")),
-        );
+        let content = content
+            .push(
+                scrollable(
+                    container(self.view_calendar_event_list(compact, filtered, now_utc))
+                        .padding(iced::Padding {
+                            right: SCROLLBAR_WIDTH,
+                            ..Default::default()
+                        })
+                        .width(Fill),
+                )
+                .id(iced::widget::Id::new("calendar_scroll"))
+                .direction(scrollable::Direction::Vertical(
+                    scrollable::Scrollbar::new()
+                        .width(SCROLLBAR_WIDTH)
+                        .scroller_width(SCROLLBAR_WIDTH),
+                ))
+                .height(Fill),
+            )
+            .push(rule::horizontal(1).style(helpers::separator_style))
+            .push(
+                container(
+                    column![
+                        self.view_calendar_summary(next_important, now_utc),
+                        self.view_calendar_status_row(status_text, status_color),
+                    ]
+                    .spacing(3),
+                )
+                .padding([5, 8]),
+            );
 
-        container(content)
-            .width(Fill)
-            .height(Fill)
-            .padding(8)
-            .into()
+        container(content).width(Fill).height(Fill).into()
     }
 }
 

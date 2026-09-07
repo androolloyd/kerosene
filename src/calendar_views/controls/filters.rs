@@ -9,10 +9,10 @@ impl TradingTerminal {
         let filter_button = |label: &'static str, active: bool, msg: Message| {
             button(text(label).size(10).center())
                 .on_press(msg)
-                .padding([2, 7])
+                .padding([4, 6])
                 .style(move |theme: &Theme, status| {
                     let bg = if active {
-                        theme.extended_palette().background.strong.color
+                        theme.palette().primary.scale_alpha(0.12)
                     } else {
                         match status {
                             button::Status::Hovered => {
@@ -70,7 +70,7 @@ impl TradingTerminal {
                 Message::CalendarImpactFilterChanged(CalendarImpactFilter::All),
             ),
         ]
-        .spacing(4)
+        .spacing(2)
         .align_y(iced::Alignment::Center)
         .wrap()
         .into()
